@@ -3,8 +3,16 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
+[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class DetailedCapsule : MonoBehaviour
 {
+#if UNITY_EDITOR
+    public void OnValidate()
+    {
+        GenerateCapsuleMesh();
+    }
+#endif
+
     public enum UvProfile : int {Fixed = 0, Aspect = 1, Uniform = 2 }
     UvProfile profile = UvProfile.Aspect;
 
@@ -20,20 +28,22 @@ public class DetailedCapsule : MonoBehaviour
     Vector3[] vertices;
     Mesh CapsuleMesh;
 
-    static GameObject InstantMesh(string name, Mesh mesh, float capsuleDepth = 1.0f, float capsuleRadius = 0.5f) { //instatiates basic capsule parameters and creates capsule object
-        GameObject capsule = new GameObject(name);
-        MeshFilter mf = capsule.AddComponent<MeshFilter>();
-        MeshRenderer mr = capsule.AddComponent<MeshRenderer>();
-        CapsuleCollider cc = capsule.AddComponent<CapsuleCollider>();
+    //static GameObject InstantMesh(string name, Mesh mesh, float capsuleDepth = 1.0f, float capsuleRadius = 0.5f) { //instatiates basic capsule parameters and creates capsule object
+    //    GameObject capsule = new GameObject(name);
+    //    MeshFilter mf = capsule.AddComponent<MeshFilter>();
+    //    MeshRenderer mr = capsule.AddComponent<MeshRenderer>();
+    //    CapsuleCollider cc = capsule.AddComponent<CapsuleCollider>();
 
-        mf.sharedMesh = mesh;
-        mr.sharedMaterial = AssetDatabase.GetBuiltinExtraResource<Material>("Default-Diffuse.mat");
-        cc.height = capsuleDepth + capsuleRadius * 2.0f;
-        cc.radius = capsuleRadius;
-        Selection.activeObject = capsule;
+    //    mf.sharedMesh = mesh;
+    //    mr.sharedMaterial = AssetDatabase.GetBuiltinExtraResource<Material>("Default-Diffuse.mat");
+    //    cc.height = capsuleDepth + capsuleRadius * 2.0f;
+    //    cc.radius = capsuleRadius;
+    //    Selection.activeObject = capsule;
 
-        return capsule;
-    }
+    //    return capsule;
+    //}
+
+    
 
     void GenerateCapsuleMesh() {
         if (segments % 2 != 0)
@@ -79,7 +89,7 @@ public class DetailedCapsule : MonoBehaviour
         float uvX, uvY;
 
         //Top Hemisphere
-        int top = Mawthf.CeilToInt((float)points * 0.5f);
+        int top = Mathf.CeilToInt((float)points * 0.5f);
 
         int ind = 0;
         for (int y = 0; y < top; y++)
@@ -98,7 +108,58 @@ public class DetailedCapsule : MonoBehaviour
         }
 
         //Bottom Hemisphere
-        int btm = Mathf.FloorToInt
+        int btm = Mathf.FloorToInt((float)points * 0.5f);
+
+        for (int y = 0; y < points; y++)
+        {
+            for (int x = 0; x < points; x++)
+            {
+                vertices[ind] = new Vector3(pX[x] * pR[y], pY[y], pZ[x] * pR[y]) * radius;
+                vertices[ind].y = -yOff + vertices[ind].y;
+
+                uvX = 1f - (stepX * (float)x);
+                uvY = (vertices[ind].y + (height * 0.5f)) / height;
+                uvs[ind] = new Vector2(uvX, uvY);
+
+                ind++;
+            }
+        }
+
+        // Triangles
+
+        int[] Triangles = new int[(segments * (segments + 1) * 2 * 3)];
+
+        for (int y = 0, t = 0; y < segments + 1; y++)
+        {
+            for (int x = 0; x < segments; x++, t += 6)
+            {
+                Triangles[t + 0] = ((y + 0) * (segments + 1)) + x + 0;
+                Triangles[t + 1] = ((y + 1) * (segments + 1)) + x + 0;
+                Triangles[t + 2] = ((y + 1) * (segments + 1)) + x + 1;
+
+                Triangles[t + 3] = ((y + 0) * (segments + 1)) + x + 1;
+                Triangles[t + 4] = ((y + 0) * (segments + 1)) + x + 0;
+                Triangles[t + 5] = ((y + 1) * (segments + 1)) + x + 1;
+            }
+        }
+
+        //Assign Mesh
+        MeshFilter mf = gameObject.GetComponent<MeshFilter>();
+        Mesh mesh = mf.sharedMesh;
+
+        if (!mesh) {
+            mesh = new Mesh();
+            mf.sharedMesh = mesh;
+        }
+        mesh.Clear();
+
+        mesh.name = "Capsule";
+        mesh.vertices = vertices;
+        mesh.uv = uvs;
+        mesh.triangles = Triangles;
+
+        mesh.RecalculateBounds();
+        mesh.RecalculateNormals();
     }
 
 
@@ -141,8 +202,7 @@ public class DetailedCapsule : MonoBehaviour
     }
     private void Update()
     {
-        latitudes = latitudes % 2 != 0 ? latitudes + 1 : latitudes;
-        CapsuleMesh = CapsuleData();
+       
     }
 
 }
