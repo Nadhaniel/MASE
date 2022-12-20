@@ -1,208 +1,167 @@
 using System.Collections;
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using System.Net.NetworkInformation;
+using UnityEngine.UIElements;
 
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class DetailedCapsule : MonoBehaviour
 {
+    private SkinnedMeshRenderer skinnedMeshRenderer;
+    private MeshCollider meshCollider;
+    private Transform root;
+    private Mesh mesh;
+    public int Segments = 24;
+    public float Radius = 0.5f;
+    public int Rings = 14;
+    public float Lenght = 28;
+
+
 #if UNITY_EDITOR
     public void OnValidate()
     {
-        GenerateCapsuleMesh();
+        Initialize();
     }
 #endif
 
-    public enum UvProfile : int {Fixed = 0, Aspect = 1, Uniform = 2 }
-    UvProfile profile = UvProfile.Aspect;
+    private void Initialize() {
+        if (!mesh) {
+            GameObject model = new GameObject("Model");
+            model.transform.SetParent(transform);
+            model.transform.localPosition = Vector3.zero;
+            model.transform.localRotation = Quaternion.identity;
 
-    private int longitudes = 32;
-    public int latitudes = 16;
-    public int rings = 0;
-    public float depth = 1.0f;
-    public float radius = 0.5f;
-    public float height = 2f;
-    public int segments = 24;
+            root = new GameObject("Root").transform;
+            root.SetParent(transform);
+            root.localPosition = Vector3.zero;
+            root.localRotation = Quaternion.identity;
 
-    int points;
-    Vector3[] vertices;
-    Mesh CapsuleMesh;
+            skinnedMeshRenderer = model.AddComponent<SkinnedMeshRenderer>();
+            skinnedMeshRenderer.sharedMaterial = new Material(Shader.Find("Standard"));
+            skinnedMeshRenderer.sharedMesh = mesh = model.AddComponent<MeshFilter>().sharedMesh = new Mesh();
+            skinnedMeshRenderer.rootBone = root.transform;
+            meshCollider = model.AddComponent<MeshCollider>();
+            //model.AddComponent<Test>();
 
-    //static GameObject InstantMesh(string name, Mesh mesh, float capsuleDepth = 1.0f, float capsuleRadius = 0.5f) { //instatiates basic capsule parameters and creates capsule object
-    //    GameObject capsule = new GameObject(name);
-    //    MeshFilter mf = capsule.AddComponent<MeshFilter>();
-    //    MeshRenderer mr = capsule.AddComponent<MeshRenderer>();
-    //    CapsuleCollider cc = capsule.AddComponent<CapsuleCollider>();
-
-    //    mf.sharedMesh = mesh;
-    //    mr.sharedMaterial = AssetDatabase.GetBuiltinExtraResource<Material>("Default-Diffuse.mat");
-    //    cc.height = capsuleDepth + capsuleRadius * 2.0f;
-    //    cc.radius = capsuleRadius;
-    //    Selection.activeObject = capsule;
-
-    //    return capsule;
-    //}
-
-    
-
-    void GenerateCapsuleMesh() {
-        if (segments % 2 != 0)
-        { 
-            segments++;
+            mesh.name = "Body";
         }
 
-        points = segments + 1;
+        //Add method and Addtoback method missing
 
-        float[] pX = new float[points];
-        float[] pZ = new float[points];
-        float[] pY = new float[points];
-        float[] pR = new float[points];
+        Setup();
+    }
 
-        float calcH = 0f;
-        float calcV = 0f;
+    private void Setup()
+    {
+        //Mesh Generation
+        mesh.Clear();
 
-        for (int i = 0; i < points; i++)
+        //Vertices
+        List<Vector3> vertices = new List<Vector3>();
+        //Top hemisphere
+        vertices.Add(new Vector3(0, 0, 0));
+        for (int ringIndex = 1; ringIndex < Segments / 2; ringIndex++)
         {
-            pX[i] = Mathf.Sin(calcH * Mathf.Deg2Rad);
-            pZ[i] = Mathf.Cos(calcH * Mathf.Deg2Rad);
-            pY[i] = Mathf.Cos(calcH * Mathf.Deg2Rad);
-            pR[i] = Mathf.Cos(calcH * Mathf.Deg2Rad);
+            float percent = (float)ringIndex / (Segments / 2);
+            float ringRadius = Radius * Mathf.Sin(90f * percent * Mathf.Deg2Rad);
+            float ringDistance = Radius * (-Mathf.Cos(90f * percent * Mathf.Deg2Rad) + 1f);
 
-            calcH += 360f / (float)segments;
-            calcV += 180f / (float)segments;
-        }
-
-        // -Vertices and UVs
-
-        vertices = new Vector3[points * (points + 1)];
-        Vector2[] uvs = new Vector2[vertices.Length];
-
-        //Y 0ffset is half the heigh minus the diameter
-        float yOff = (height - (radius * 2f)) * 0.5f;
-
-        if (yOff < 0) {
-            yOff = 0;
-        }
-
-        //uv calculations
-        float stepX = 1f / ((float)(points - 1));
-        float uvX, uvY;
-
-        //Top Hemisphere
-        int top = Mathf.CeilToInt((float)points * 0.5f);
-
-        int ind = 0;
-        for (int y = 0; y < top; y++)
-        {
-            for (int x = 0; x < top; x++)
+            for (int i = 0; i < Segments; i++)
             {
-                vertices[ind] = new Vector3(pX[x] * pR[y], pY[y], pZ[x] * pR[y]) * radius;
-                vertices[ind].y = yOff + vertices[ind].y;
+                float angle = i * 360f / Segments;
+                float x = ringRadius * Mathf.Cos(angle * Mathf.Deg2Rad);
+                float y = ringRadius * Mathf.Sin(angle * Mathf.Deg2Rad);
+                float z = ringDistance;
 
-                uvX = 1f - (stepX * (float)x);
-                uvY = (vertices[ind].y + (height * 0.5f)) / height;
-                uvs[ind] = new Vector2(uvX, uvY);
+                vertices.Add(new Vector3(x, y, z));
+                //boneweights
+            }
+        }
 
-                ind++;
+        //Middle Cyclinder
+        for (int ringIndex = 0; ringIndex < Rings; ringIndex++)
+        {
+            for (int i = 0; i < Segments; i++)
+            {
+                float angle = i * 360f / Segments;
+                float x = Radius * Mathf.Cos(angle * Mathf.Deg2Rad);
+                float y = Radius * Mathf.Sin(angle * Mathf.Deg2Rad);
+                float z = ringIndex * Lenght / Rings;
+
+                vertices.Add(new Vector3(x, y, Radius + z));
             }
         }
 
         //Bottom Hemisphere
-        int btm = Mathf.FloorToInt((float)points * 0.5f);
 
-        for (int y = 0; y < points; y++)
+        for (int ringIndex = 0; ringIndex < Segments / 2; ringIndex++)
         {
-            for (int x = 0; x < points; x++)
+            float percent = (float)ringIndex / (Segments / 2);
+            float ringRadius = Radius * Mathf.Cos(90f * percent * Mathf.Deg2Rad);
+            float ringDistance = Radius * Mathf.Sin(90f * percent * Mathf.Deg2Rad);
+
+            for (int i = 0; i < Segments; i++)
             {
-                vertices[ind] = new Vector3(pX[x] * pR[y], pY[y], pZ[x] * pR[y]) * radius;
-                vertices[ind].y = -yOff + vertices[ind].y;
+                float angle = i * 360f / Segments;
+                float x = ringRadius * Mathf.Cos(angle * Mathf.Deg2Rad);
+                float y = ringRadius * Mathf.Sin(angle * Mathf.Deg2Rad);
+                float z = ringDistance;
 
-                uvX = 1f - (stepX * (float)x);
-                uvY = (vertices[ind].y + (height * 0.5f)) / height;
-                uvs[ind] = new Vector2(uvX, uvY);
+                vertices.Add(new Vector3(x, y, Radius + Lenght + z));
+                //boneweights
+            }
+        }
+        vertices.Add(new Vector3(0, 0, 2f * Radius + Lenght));
 
-                ind++;
+        mesh.vertices = vertices.ToArray();
+
+        //Triangles
+        List<int> triangles = new List<int>();
+
+        for (int i = 0; i < Segments; i++)
+        {
+            int seamOffset = i != Segments - 1 ? 0 : Segments; //? = sh0rthand for an if statement
+
+            triangles.Add(0);
+            triangles.Add(i + 2 - seamOffset);
+            triangles.Add(i + 1);
+        }
+
+        int rings = Rings + (2 * (Segments / 2 - 1));
+        for (int ringIndex = 0; ringIndex < rings; ringIndex++)
+        {
+            int ringOffset = 1 + ringIndex * Segments;
+
+            for (int i = 0; i < Segments; i++)
+            {
+                int seamOffset = i != Segments - 1 ? 0 : Segments;
+
+                triangles.Add(ringOffset + i);
+                triangles.Add(ringOffset + i + 1 - seamOffset);
+                triangles.Add(ringOffset + i + 1 - seamOffset + Segments);
+
+                triangles.Add(ringOffset + i + 1 - seamOffset + Segments);
+                triangles.Add(ringOffset + i + Segments);
+                triangles.Add(ringOffset + i);
             }
         }
 
-        // Triangles
-
-        int[] Triangles = new int[(segments * (segments + 1) * 2 * 3)];
-
-        for (int y = 0, t = 0; y < segments + 1; y++)
+        int topIndex = 1 + (rings + 1) * Segments;
+        for (int i = 0; i < Segments; i++)
         {
-            for (int x = 0; x < segments; x++, t += 6)
-            {
-                Triangles[t + 0] = ((y + 0) * (segments + 1)) + x + 0;
-                Triangles[t + 1] = ((y + 1) * (segments + 1)) + x + 0;
-                Triangles[t + 2] = ((y + 1) * (segments + 1)) + x + 1;
+            int seamOffset = i != Segments - 1 ? 0 : Segments;
 
-                Triangles[t + 3] = ((y + 0) * (segments + 1)) + x + 1;
-                Triangles[t + 4] = ((y + 0) * (segments + 1)) + x + 0;
-                Triangles[t + 5] = ((y + 1) * (segments + 1)) + x + 1;
-            }
+            triangles.Add(topIndex);
+            triangles.Add(topIndex - i - 2 + seamOffset);
+            triangles.Add(topIndex - i - 1);
         }
+        mesh.triangles = triangles.ToArray();
 
-        //Assign Mesh
-        MeshFilter mf = gameObject.GetComponent<MeshFilter>();
-        Mesh mesh = mf.sharedMesh;
-
-        if (!mesh) {
-            mesh = new Mesh();
-            mf.sharedMesh = mesh;
-        }
-        mesh.Clear();
-
-        mesh.name = "Capsule";
-        mesh.vertices = vertices;
-        mesh.uv = uvs;
-        mesh.triangles = Triangles;
-
-        mesh.RecalculateBounds();
         mesh.RecalculateNormals();
+        mesh.Optimize();
     }
 
-
-    Mesh CapsuleData()
-    {
-        bool calcMiddle = rings > 0;
-        int halfLats = latitudes / 2;
-        int halfLatsn1 = halfLats - 1;
-        int halfLatsn2 = halfLats - 2;
-        int ringsp1 = rings + 1;
-        int lonsp1 = longitudes + 1;
-        float halfDepth = depth * 0.5f;
-        float summit = halfDepth + radius;
-
-        //Vertex index offsets
-        int vertOffsetNorthHemi = longitudes;
-        int vertOffsetNorthEquator = vertOffsetNorthHemi + lonsp1 * halfLatsn1;
-        int vertOffsetCyclinder = vertOffsetNorthEquator + lonsp1;
-        int vertOffsetSouthEquator = calcMiddle ? vertOffsetCyclinder + lonsp1 * rings : vertOffsetCyclinder;
-        int vertOffsetSouthHemi = vertOffsetSouthEquator + lonsp1;
-        int vertOffsetSouthPolar = vertOffsetSouthHemi + lonsp1 * halfLatsn2;
-        int vertOffsetSouthCap = vertOffsetSouthPolar + lonsp1;
-
-        int vertLen = vertOffsetSouthCap + longitudes;
-        Vector3[] vs = new Vector3[vertLen];
-        Vector2[] vts = new Vector2[vertLen];
-        Vector3[] vns = new Vector3[vertLen];
-
-        float toTheta = 2.0f * Mathf.PI / longitudes;
-        float toPhi = Mathf.PI / latitudes;
-        float toTexHorizontal = 1.0f / longitudes;
-        float toTexVertical = 1.0f / halfLats;
-
-        return null;
-    }
-
-    private void Start()
-    {
-        
-    }
-    private void Update()
-    {
-       
-    }
 
 }
