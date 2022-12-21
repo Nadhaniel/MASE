@@ -5,18 +5,23 @@ using UnityEditor;
 using UnityEngine;
 using System.Net.NetworkInformation;
 using UnityEngine.UIElements;
+using UnityEngine.XR;
 
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class DetailedCapsule : MonoBehaviour
 {
+    #region Fields
     private SkinnedMeshRenderer skinnedMeshRenderer;
     private MeshCollider meshCollider;
     private Transform root;
     private Mesh mesh;
-    public int Segments = 24;
-    public float Radius = 0.5f;
-    public int Rings = 14;
-    public float Lenght = 28;
+    [SerializeField] int Segments = 24;
+    [SerializeField] float Radius = 0.5f;
+    [SerializeField] int Rings = 14;
+    [SerializeField] float Lenght = 28;
+
+    private List<Bone> bones = new List<Bone>();
+    #endregion
 
 
 #if UNITY_EDITOR
@@ -43,7 +48,6 @@ public class DetailedCapsule : MonoBehaviour
             skinnedMeshRenderer.sharedMesh = mesh = model.AddComponent<MeshFilter>().sharedMesh = new Mesh();
             skinnedMeshRenderer.rootBone = root.transform;
             meshCollider = model.AddComponent<MeshCollider>();
-            //model.AddComponent<Test>();
 
             mesh.name = "Body";
         }
@@ -52,20 +56,23 @@ public class DetailedCapsule : MonoBehaviour
 
         Setup();
     }
-
+    #region MeshSetup
     private void Setup()
     {
         //Mesh Generation
         mesh.Clear();
 
-        //Vertices
+        //Vertices & BoneWeights
         List<Vector3> vertices = new List<Vector3>();
-        //Top hemisphere
+        List<BoneWeight> boneWeights = new List<BoneWeight>();
+
+        #region Top HemiSphere
         vertices.Add(new Vector3(0, 0, 0));
+        boneWeights.Add(new BoneWeight() {boneIndex0 = 0, weight0 = 1 });
         for (int ringIndex = 1; ringIndex < Segments / 2; ringIndex++)
         {
             float percent = (float)ringIndex / (Segments / 2);
-            float ringRadius = Radius * Mathf.Sin(90f * percent * Mathf.Deg2Rad);
+            float ringRadius = Radius * Mathf.Sin(90f * percent *Mathf.Deg2Rad);
             float ringDistance = Radius * (-Mathf.Cos(90f * percent * Mathf.Deg2Rad) + 1f);
 
             for (int i = 0; i < Segments; i++)
@@ -76,13 +83,24 @@ public class DetailedCapsule : MonoBehaviour
                 float z = ringDistance;
 
                 vertices.Add(new Vector3(x, y, z));
-                //boneweights
+                boneWeights.Add(new BoneWeight() { boneIndex0 = 0, weight0 = 1f });
             }
         }
-
-        //Middle Cyclinder
-        for (int ringIndex = 0; ringIndex < Rings; ringIndex++)
+        #endregion
+        #region Cylinder
+        for (int ringIndex = 0; ringIndex < Rings * bones.Count; ringIndex++)
         {
+            float boneIndexFloat = (float)ringIndex / Rings;
+            int boneIndex = Mathf.FloorToInt(boneIndexFloat);
+            float bonePercent = boneIndexFloat - boneIndex;
+
+            int boneIndex0 = (boneIndex > 0) ? boneIndex - 1 : 0;
+            int boneIndex2 = (boneIndex < bones.Count - 1) ? boneIndex + 1 : bones.Count - 1;
+            int boneIndex1 = boneIndex;
+
+            float weight0 = (boneIndex > 0) ? (1f - bonePercent) * 0.5f : 0f;
+            float weight2 = (boneIndex < bones.Count - 1) ? bonePercent * 0.5f : 0f;
+            float weight1 = 1f - (weight0 + weight2);
             for (int i = 0; i < Segments; i++)
             {
                 float angle = i * 360f / Segments;
@@ -93,8 +111,8 @@ public class DetailedCapsule : MonoBehaviour
                 vertices.Add(new Vector3(x, y, Radius + z));
             }
         }
-
-        //Bottom Hemisphere
+        #endregion
+        #region Bottom HemiSphere
 
         for (int ringIndex = 0; ringIndex < Segments / 2; ringIndex++)
         {
@@ -116,13 +134,13 @@ public class DetailedCapsule : MonoBehaviour
         vertices.Add(new Vector3(0, 0, 2f * Radius + Lenght));
 
         mesh.vertices = vertices.ToArray();
-
+        #endregion
         //Triangles
         List<int> triangles = new List<int>();
 
         for (int i = 0; i < Segments; i++)
         {
-            int seamOffset = i != Segments - 1 ? 0 : Segments; //? = sh0rthand for an if statement
+            int seamOffset = i != Segments - 1 ? 0 : Segments;
 
             triangles.Add(0);
             triangles.Add(i + 2 - seamOffset);
@@ -163,5 +181,12 @@ public class DetailedCapsule : MonoBehaviour
         mesh.Optimize();
     }
 
+    #endregion
 
+    public void AddToFront() 
+    {
+        
+    
+
+    }
 }
