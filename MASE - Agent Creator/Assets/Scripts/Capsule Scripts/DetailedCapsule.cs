@@ -15,7 +15,13 @@ public class DetailedCapsule : MonoBehaviour
     private MeshCollider meshCollider;
     private Transform root;
     private Mesh mesh;
-    private GameObject boneTool;
+    [Header("Tools")]
+    [SerializeField] private GameObject boneTool;
+   
+    [Space]
+    
+    [Header("Capsule Properties")]
+
     [SerializeField] int Segments = 24;
     [SerializeField] float Radius = 0.5f;
     [SerializeField] int Rings = 14;
@@ -54,8 +60,9 @@ public class DetailedCapsule : MonoBehaviour
             mesh.name = "Body";
         }
 
-        //AddBone(0);
-        //Add method and Addtoback method missing
+        AddBone(0, Vector3.zero, Quaternion.identity, 0f);
+        AddToFront();
+        
 
         CapsuleMeshGeneration();
     }
@@ -72,7 +79,7 @@ public class DetailedCapsule : MonoBehaviour
         
         #region Top HemiSphere
         vertices.Add(new Vector3(0, 0, 0));
-        //boneWeights.Add(new BoneWeight() {boneIndex0 = 0, weight0 = 1 });
+        boneWeights.Add(new BoneWeight() {boneIndex0 = 0, weight0 = 1 });
         for (int ringIndex = 1; ringIndex < Segments / 2; ringIndex++)
         {
             float percent = (float)ringIndex / (Segments / 2);
@@ -87,25 +94,25 @@ public class DetailedCapsule : MonoBehaviour
                 float z = ringDistance;
 
                 vertices.Add(new Vector3(x, y, z));
-                //boneWeights.Add(new BoneWeight() { boneIndex0 = 0, weight0 = 1f });
+                boneWeights.Add(new BoneWeight() { boneIndex0 = 0, weight0 = 1f });
             }
         }
         #endregion
         
         #region Cylinder
-        for (int ringIndex = 0; ringIndex < Rings; ringIndex++)
+        for (int ringIndex = 0; ringIndex < Rings * bones.Count; ringIndex++)
         {
-            //float boneIndexFloat = (float)ringIndex / Rings;
-            //int boneIndex = Mathf.FloorToInt(boneIndexFloat);
-            //float bonePercent = boneIndexFloat - boneIndex;
+            float boneIndexFloat = (float)ringIndex / Rings;
+            int boneIndex = Mathf.FloorToInt(boneIndexFloat);
+            float bonePercent = boneIndexFloat - boneIndex;
 
-            //int boneIndex0 = (boneIndex > 0) ? boneIndex - 1 : 0;
-            //int boneIndex2 = (boneIndex < bones.Count - 1) ? boneIndex + 1 : bones.Count - 1;
-            //int boneIndex1 = boneIndex;
+            int boneIndex0 = (boneIndex > 0) ? boneIndex - 1 : 0;
+            int boneIndex2 = (boneIndex < bones.Count - 1) ? boneIndex + 1 : bones.Count - 1;
+            int boneIndex1 = boneIndex;
 
-            //float weight0 = (boneIndex > 0) ? (1f - bonePercent) * 0.5f : 0f;
-            //float weight2 = (boneIndex < bones.Count - 1) ? bonePercent * 0.5f : 0f;
-            //float weight1 = 1f - (weight0 + weight2);
+            float weight0 = (boneIndex > 0) ? (1f - bonePercent) * 0.5f : 0f;
+            float weight2 = (boneIndex < bones.Count - 1) ? bonePercent * 0.5f : 0f;
+            float weight1 = 1f - (weight0 + weight2);
             for (int i = 0; i < Segments; i++)
             {
                 float angle = i * 360f / Segments;
@@ -114,7 +121,7 @@ public class DetailedCapsule : MonoBehaviour
                 float z = ringIndex * Lenght / Rings;
 
                 vertices.Add(new Vector3(x, y, Radius + z));
-                //boneWeights.Add(new BoneWeight() {boneIndex0 = boneIndex0, boneIndex1 = boneIndex1, boneIndex2 = boneIndex2, weight0 = weight0, weight1 = weight1, weight2 = weight2 });
+                boneWeights.Add(new BoneWeight() {boneIndex0 = boneIndex0, boneIndex1 = boneIndex1, boneIndex2 = boneIndex2, weight0 = weight0, weight1 = weight1, weight2 = weight2 });
             }
         }
         #endregion
@@ -134,15 +141,15 @@ public class DetailedCapsule : MonoBehaviour
                 float y = ringRadius * Mathf.Sin(angle * Mathf.Deg2Rad);
                 float z = ringDistance;
 
-                vertices.Add(new Vector3(x, y, Radius + Lenght + z));
-                //boneWeights.Add(new BoneWeight() { boneIndex0 = bones.Count - 1, weight0 = 1 });
+                vertices.Add(new Vector3(x, y, Radius + (Lenght * bones.Count) + z));
+                boneWeights.Add(new BoneWeight() { boneIndex0 = bones.Count - 1, weight0 = 1 });
             }
         }
-        vertices.Add(new Vector3(0, 0, 2f * Radius + Lenght));
-        //boneWeights.Add(new BoneWeight() { boneIndex0 = bones.Count - 1, weight0 = 1 });
+        vertices.Add(new Vector3(0, 0, 2f * Radius + (Lenght * bones.Count)));
+        boneWeights.Add(new BoneWeight() { boneIndex0 = bones.Count - 1, weight0 = 1 });
 
         mesh.vertices = vertices.ToArray();
-        //mesh.boneWeights = boneWeights.ToArray();
+        mesh.boneWeights = boneWeights.ToArray();
         #endregion
         
         #region Triangles
@@ -189,40 +196,41 @@ public class DetailedCapsule : MonoBehaviour
         #endregion
 
         #region Bones
-        //Transform[] boneTransforms = new Transform[bones.Count];
-        //Matrix4x4[] bindPoses = new Matrix4x4[bones.Count];
-        //Vector3[] deltaZeroArr = new Vector3[vertices.Count];
-        //for (int vertIndex = 0; vertIndex < vertices.Count; vertIndex++)
-        //{
-        //    deltaZeroArr[vertIndex] = Vector3.zero;
-        //}
-        //for (int boneIndex = 0; boneIndex < bones.Count; boneIndex++)
-        //{
-        //    boneTransforms[boneIndex] = root.GetChild(boneIndex);
-        //    boneTransforms[boneIndex].localPosition = Vector3.forward * (Radius + Lenght * (0.5f + boneIndex));
-        //    boneTransforms[boneIndex].localRotation = Quaternion.identity;
-        //    bindPoses[boneIndex] = boneTransforms[boneIndex].worldToLocalMatrix * transform.localToWorldMatrix;
+        Transform[] boneTransforms = new Transform[bones.Count];
+        Matrix4x4[] bindPoses = new Matrix4x4[bones.Count];
+        Vector3[] deltaZeroArr = new Vector3[vertices.Count];
+        for (int vertIndex = 0; vertIndex < vertices.Count; vertIndex++)
+        {
+            deltaZeroArr[vertIndex] = Vector3.zero;
+        }
+        for (int boneIndex = 0; boneIndex < bones.Count; boneIndex++)
+        {
+            boneTransforms[boneIndex] = root.GetChild(boneIndex);
+            boneTransforms[boneIndex].localPosition = Vector3.forward * (Radius + Lenght * (0.5f + boneIndex));
+            boneTransforms[boneIndex].localRotation = Quaternion.identity;
+            bindPoses[boneIndex] = boneTransforms[boneIndex].worldToLocalMatrix * transform.localToWorldMatrix;
 
-        //    if (boneIndex > 0) {
-        //        HingeJoint hingeJoint = boneTransforms[boneIndex].GetComponent<HingeJoint>();
-        //        hingeJoint.anchor = new Vector3(0, 0, -Lenght / 2f);
-        //        hingeJoint.connectedBody = boneTransforms[boneIndex - 1].GetComponent<Rigidbody>();
-        //    }
+            if (boneIndex > 0)
+            {
+                HingeJoint hingeJoint = boneTransforms[boneIndex].GetComponent<HingeJoint>();
+                hingeJoint.anchor = new Vector3(0, 0, -Lenght / 2f);
+                hingeJoint.connectedBody = boneTransforms[boneIndex - 1].GetComponent<Rigidbody>();
+            }
 
-        //    Vector3[] deltaVertices = new Vector3[vertices.Count];
-        //    for (int vertIndex = 0; vertIndex < vertices.Count; vertIndex++)
-        //    {
-        //        float distToBone = Mathf.Clamp(Vector3.Distance(vertices[vertIndex], boneTransforms[boneIndex].localPosition), 0, 2f * Lenght);
-        //        Vector3 dirToBone = (vertices[vertIndex] - boneTransforms[boneIndex].localPosition).normalized;
-        //        deltaVertices[vertIndex] = dirToBone * (2f * Lenght - distToBone);
-        //    }
+            Vector3[] deltaVertices = new Vector3[vertices.Count];
+            for (int vertIndex = 0; vertIndex < vertices.Count; vertIndex++)
+            {
+                float distToBone = Mathf.Clamp(Vector3.Distance(vertices[vertIndex], boneTransforms[boneIndex].localPosition), 0, 2f * Lenght);
+                Vector3 dirToBone = (vertices[vertIndex] - boneTransforms[boneIndex].localPosition).normalized;
+                deltaVertices[vertIndex] = dirToBone * (2f * Lenght - distToBone);
+            }
 
-        //    mesh.AddBlendShapeFrame("Bone." + boneIndex, 0, deltaZeroArr, deltaZeroArr, deltaZeroArr);
-        //    mesh.AddBlendShapeFrame("Bone." + boneIndex, 100, deltaVertices, deltaZeroArr, deltaZeroArr);
-        //}
+            mesh.AddBlendShapeFrame("Bone." + boneIndex, 0, deltaZeroArr, deltaZeroArr, deltaZeroArr);
+            mesh.AddBlendShapeFrame("Bone." + boneIndex, 100, deltaVertices, deltaZeroArr, deltaZeroArr);
+        }
 
-        //mesh.bindposes = bindPoses;
-        //skinnedMeshRenderer.bones = boneTransforms;
+        mesh.bindposes = bindPoses;
+        skinnedMeshRenderer.bones = boneTransforms;
 
         mesh.RecalculateNormals();
         mesh.Optimize();
@@ -231,15 +239,15 @@ public class DetailedCapsule : MonoBehaviour
         #endregion
 
         #region Mesh Molding
-        //for (int boneIndex = 0; boneIndex < bones.Count; boneIndex++)
-        //{
-        //    boneTransforms[boneIndex].localPosition = bones[boneIndex].position;
-        //    boneTransforms[boneIndex].localRotation = bones[boneIndex].rotation;
-        //    skinnedMeshRenderer.SetBlendShapeWeight(boneIndex, bones[boneIndex].scale.magnitude); //Possible bug here with using scale.magnitute here
-        //}
-        //Mesh skinnedMesh = new Mesh();
-        //skinnedMeshRenderer.BakeMesh(skinnedMesh);
-        //meshCollider.sharedMesh = skinnedMesh;
+        for (int boneIndex = 0; boneIndex < bones.Count; boneIndex++)
+        {
+            boneTransforms[boneIndex].localPosition = bones[boneIndex].Position;
+            boneTransforms[boneIndex].localRotation = bones[boneIndex].Rotation;
+            skinnedMeshRenderer.SetBlendShapeWeight(boneIndex, bones[boneIndex].Size); //Possible bug here with using scale.magnitute here
+        }
+        Mesh skinnedMesh = new Mesh();
+        skinnedMeshRenderer.BakeMesh(skinnedMesh);
+        meshCollider.sharedMesh = skinnedMesh;
         #endregion
     }
 
@@ -259,15 +267,26 @@ public class DetailedCapsule : MonoBehaviour
                 DestroyImmediate(boneobj.GetComponent<HingeJoint>());
             }
 
+            bones.Insert(index, new Bone(position, rotation, size));
+
             CapsuleMeshGeneration();
         }
     }
     public void AddToFront() 
     {
+        UpdateBoneConfig();
+        Vector3 position = bones[0].Position - root.GetChild(0).forward * Lenght;
+        Quaternion rotation= bones[0].Rotation;
 
+        AddBone(0, position, rotation, Mathf.Clamp(bones[0].Size * 0.75f, 0f, 100f));
     }
     private void UpdateBoneConfig()
     {
-        
+        for (int i = 0; i < bones.Count; i++)
+        {
+            bones[i].Position = root.GetChild(i).localPosition;
+            bones[i].Rotation = root.GetChild(i).localRotation;
+            bones[i].Size = skinnedMeshRenderer.GetBlendShapeWeight(i);
+        }
     }
 }
