@@ -14,17 +14,9 @@ public class CustomInspector : Editor
         if (GUILayout.Button("Add to front")) {
             cap.AddToFront();
         }
-        if (GUILayout.Button("Add to back"))
-        {
-            cap.AddToFront();
-        }
         if (GUILayout.Button("remove from front"))
         {
-            cap.AddToFront();
-        }
-        if (GUILayout.Button("remove from back"))
-        {
-            cap.AddToFront();
+            cap.RemoveFromFront();
         }
     }
 }
