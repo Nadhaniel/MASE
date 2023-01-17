@@ -9,15 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fee4829c1d435c645bca75c74f867c67, type: 3}
-  m_Name: Default Noise
+  m_Script: {fileID: 11500000, guid: 9d385d99caf30554dbda2e96ae739ed1, type: 3}
+  m_Name: Default Texture
   m_EditorClassIdentifier: 
   autoUpdate: 1
-  mapWidth: 100
-  mapHeight: 100
-  noiseScale: 27.51
-  octaves: 5
-  persistance: 0.305
-  lacunarity: 3.12
-  seed: 57
-  offset: {x: -12.63, y: 0.4}
+  baseColors: []
+  baseStartHeights: []
+  baseBlends: []
