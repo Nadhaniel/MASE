@@ -35,10 +35,13 @@ public class MapGenerator : MonoBehaviour
     private void Awake()
     {
         falloffmap = FalloffGen.GenerateFalloffMap(Noisedata.mapHeight);
+        Texturedata.ApplyToMaterial(terrainMaterial);
+        Texturedata.UpdateMeshHeights(terrainMaterial, Terraindata.minHeight, Terraindata.maxHeight);
     }
 
     public void DrawMapInEditor()
     {
+        Texturedata.UpdateMeshHeights(terrainMaterial, Terraindata.minHeight, Terraindata.maxHeight);
         MapData mapData = GenerateMap(Vector2.zero);
 
         MapDisplay display = FindObjectOfType<MapDisplay>();
@@ -77,7 +80,6 @@ public class MapGenerator : MonoBehaviour
                 }
             }
         }
-        Texturedata.UpdateMeshHeights(terrainMaterial, Terraindata.minHeight, Terraindata.maxHeight);
 
         return new MapData(noisemap);
     }

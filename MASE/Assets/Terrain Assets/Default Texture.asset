@@ -13,6 +13,27 @@ MonoBehaviour:
   m_Name: Default Texture
   m_EditorClassIdentifier: 
   autoUpdate: 1
-  baseColors: []
-  baseStartHeights: []
-  baseBlends: []
+  baseColors:
+  - {r: 0.9788189, g: 1, b: 0.33490568, a: 0}
+  - {r: 0.25053602, g: 0.38679248, b: 0.09669812, a: 0}
+  - {r: 0.2539987, g: 0.4811321, b: 0, a: 1}
+  - {r: 0.01886791, g: 0.01886791, b: 0.01886791, a: 0}
+  - {r: 0.16037738, g: 0.12085863, b: 0.093049146, a: 0}
+  - {r: 0.4716981, g: 0.4181532, b: 0.38047346, a: 1}
+  - {r: 1, g: 1, b: 1, a: 0}
+  baseStartHeights:
+  - 0.005
+  - 0.027
+  - 0.106
+  - 0.18
+  - 0.269
+  - 0.502
+  - 0.682
+  baseBlends:
+  - 0.005
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
