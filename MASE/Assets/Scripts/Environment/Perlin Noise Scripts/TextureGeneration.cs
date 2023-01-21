@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public static class TextureGen
+public static class TextureGeneration
 {
     public static Texture2D TexturefromColormap(Color[] colorMap, int width, int height) {
         Texture2D texture = new Texture2D(width, height);

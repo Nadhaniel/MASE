@@ -48,15 +48,15 @@ public class MapGenerator : MonoBehaviour
 
         if (drawMode == DrawMode.NoiseMap)
         {
-            display.Drawtexture(TextureGen.TexturefromHeightMap(mapData.heightMap));
+            display.Drawtexture(TextureGeneration.TexturefromHeightMap(mapData.heightMap));
         }
         else if (drawMode == DrawMode.Mesh)
         {
-            display.DrawMesh(MeshGen.GenerateTerrainMesh(mapData.heightMap, Terraindata.meshHeightMultplier, Terraindata.meshHeightCurve));
+            display.DrawMesh(MeshGenerator.GenerateTerrainMesh(mapData.heightMap, Terraindata.meshHeightMultplier, Terraindata.meshHeightCurve));
         }
         else if (drawMode == DrawMode.FalloffMap)
         {
-            display.Drawtexture(TextureGen.TexturefromHeightMap(FalloffGen.GenerateFalloffMap(Noisedata.mapHeight)));
+            display.Drawtexture(TextureGeneration.TexturefromHeightMap(FalloffGen.GenerateFalloffMap(Noisedata.mapHeight)));
         }
 
     }
