@@ -13,9 +13,6 @@ public class MapGenerator : MonoBehaviour
 
     public TerrainData Terraindata;
     public NoiseData Noisedata;
-    public TextureData Texturedata;
-
-    public Material terrainMaterial;
 
     public bool autoUpdate;
 
@@ -27,21 +24,13 @@ public class MapGenerator : MonoBehaviour
         }
     }
 
-    void OnTextureValuesUpdated()
-    {
-        Texturedata.ApplyToMaterial(terrainMaterial);
-    }
-
     private void Awake()
     {
         falloffmap = FalloffGen.GenerateFalloffMap(Noisedata.mapHeight);
-        Texturedata.ApplyToMaterial(terrainMaterial);
-        Texturedata.UpdateMeshHeights(terrainMaterial, Terraindata.minHeight, Terraindata.maxHeight);
     }
 
     public void DrawMapInEditor()
     {
-        Texturedata.UpdateMeshHeights(terrainMaterial, Terraindata.minHeight, Terraindata.maxHeight);
         MapData mapData = GenerateMap(Vector2.zero);
 
         MapDisplay display = FindObjectOfType<MapDisplay>();
@@ -94,12 +83,6 @@ public class MapGenerator : MonoBehaviour
             Noisedata.OnValuesUpdated -= OnValuesUpdated;
             Noisedata.OnValuesUpdated += OnValuesUpdated;
         }
-        if (Texturedata != null)
-        {
-            Texturedata.OnValuesUpdated -= OnTextureValuesUpdated;
-            Texturedata.OnValuesUpdated += OnTextureValuesUpdated;
-        }
-
         falloffmap = FalloffGen.GenerateFalloffMap(Noisedata.mapHeight);
     }
 
