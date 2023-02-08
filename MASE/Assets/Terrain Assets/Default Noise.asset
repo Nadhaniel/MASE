@@ -15,9 +15,9 @@ MonoBehaviour:
   autoUpdate: 1
   mapWidth: 100
   mapHeight: 100
-  noiseScale: 20.17
+  noiseScale: 18.65
   octaves: 2
-  persistance: 1
+  persistance: 0.68
   lacunarity: 3.12
-  seed: 83
-  offset: {x: -26.97, y: 0.4}
+  seed: 24
+  offset: {x: -19.8, y: -4.1}

@@ -15,7 +15,7 @@ MonoBehaviour:
   autoUpdate: 1
   uniformScale: 10
   useFalloff: 1
-  meshHeightMultplier: 30.32
+  meshHeightMultplier: 42.88
   meshHeightCurve:
     serializedVersion: 2
     m_Curve:
