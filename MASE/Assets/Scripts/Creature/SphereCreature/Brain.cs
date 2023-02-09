@@ -68,21 +68,22 @@ public class Brain
         }
     }
 
-    public Brain(LinkedList<Node> input, Brain brain)
+    public Brain(LinkedList<Node> input, LinkedList<Node> output)
     {
         network.Concat(input); // input layer
-
+        network.Concat(output);
         network.AddLast(new Node(NodeTypes.Output, 0f));
         network.AddLast(new Node(NodeTypes.Output, 0f));
         inputNodes = input.Count;
+        outputNodes = output.Count;
         hiddenNodes = 0;
-        outputNodes = 2;
     }
 
+    #region Mutation Algorithm
     public void MutateBrain()
     {
-        //var mutationType = (MutateBrainTypes)Random.Range(0, 2);
-        var mutationType = MutateBrainTypes.RSN;
+        var mutationType = (MutateBrainTypes)Random.Range(0, 2);
+        //var mutationType = MutateBrainTypes.RSN;
         if (mutationType == MutateBrainTypes.ADN)
         {
             var nodeFunctionType = (NodeTypes)Random.Range(0, 8);
@@ -345,6 +346,33 @@ public class Brain
             network.Find(randomNode).Value.HiddenNodeType = nodeFunctionType;
         }
     }
+    #endregion
+
+    public void BrainTick()
+    {
+
+        foreach (Node node in network)
+        {
+            float updatedNodeValue = 0;
+            if (node.NodeType == NodeTypes.Hidden)
+            {
+                foreach (Synapse synapse in node.ReceivingSynapses)
+                {
+                    updatedNodeValue = updatedNodeValue + (network.Find(synapse.SourceNode).Value.NodeValue * synapse.Value);
+                }
+                
+                network.Find(node).Value.NodeFunction(updatedNodeValue);
+            }
+            else if (node.NodeType == NodeTypes.Output)
+            {
+                foreach (Synapse synapse in node.ReceivingSynapses)
+                {
+                    updatedNodeValue = updatedNodeValue + (network.Find(synapse.SourceNode).Value.NodeValue * synapse.Value);
+                }
+                network.Find(node).Value.NodeFunction(updatedNodeValue);
+            }
+        }
+    }
 
     public static Node PickRandomNode(LinkedList<Node> list, NodeTypes type) //Reservoir Sampling Algorithm to pick random nodes due to linkedlist being inefficiant at index searching
     {
@@ -427,6 +455,51 @@ public class Node
         get { return hiddenNodeType; }
         set { hiddenNodeType = value; }
     }
+
+    public float NodeValue
+    {
+        get { return nodeValue; }
+        set { nodeValue = value; }
+    }
+
+    public void NodeFunction(float value)
+    {
+        switch (hiddenNodeType)
+        {
+            case NodeTypes.SIG:
+                value = Mathf.Sign(value);
+                break;
+            case NodeTypes.LIN:
+                value = value;
+                break;
+            case NodeTypes.SQR:
+                value = (value * value);
+                break;
+            case NodeTypes.SIN:
+                value = Mathf.Sin(value);
+                break;
+            case NodeTypes.ABS:
+                value = Mathf.Abs(value);
+                break;
+            case NodeTypes.REL:
+                value = Mathf.Max(0, value); // Possibly wrong function
+                break;
+            case NodeTypes.GAU:
+                value = Mathf.Exp(-Mathf.Pow(value, 2));
+                break;
+            case NodeTypes.LAT:
+                if (Mathf.Abs(value) > 0)
+                {
+                    value = 0;
+                }
+                else if (value == 0)
+                {
+                    value = 0;
+                }
+                break;
+        }
+        nodeValue = value;
+    }
 }
 
 public class Synapse
@@ -480,7 +553,7 @@ enum MutateBrainTypes
 }
 public enum NodeTypes
 {
-    SIG, //SIG - Sigmoid, LIN - Linear, SQR - Square, SIN - Sinus, ABS - Absolute, REL - Reluctant, GAU - Gaussian, LAT - Latch 
+    SIG, //SIG - Sigmoid, LIN - Linear, SQR - Square, SIN - Sinus, ABS - Absolute, REL - Rectified Linear Unit, GAU - Gaussian, LAT - Latch 
     LIN,
     SQR,
     SIN,
