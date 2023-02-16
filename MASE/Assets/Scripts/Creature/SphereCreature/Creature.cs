@@ -49,12 +49,12 @@ public class Creature : MonoBehaviour
     {
         if (Physics.Raycast(creaturetrans.position, creaturetrans.TransformDirection(Vector3.forward), out RaycastHit hit, 20f))
         {
-            Debug.Log("Hit something");
+            //Debug.Log("Hit something");
             Debug.DrawRay(creaturetrans.position, creaturetrans.TransformDirection(Vector3.forward) * 20f, Color.red);
         }
         else 
         {
-            Debug.Log("Hit Nothing");
+            //Debug.Log("Hit Nothing");
             Debug.DrawRay(creaturetrans.position, creaturetrans.TransformDirection(Vector3.forward) * 20f, Color.black);
         }
         brain.BrainTick();
