@@ -7,7 +7,7 @@ using Random = UnityEngine.Random;
 
 public class Brain
 {
-    private List<Node> network = new List<Node>();
+    private List<Node> network;
     private int synapseNum = 0;
     private int inputNodes;
     private int hiddenNodes;
@@ -72,6 +72,7 @@ public class Brain
 
     public Brain(LinkedList<Node> input, LinkedList<Node> output)
     {
+        network = new List<Node>();
         foreach (Node node in input)
         {
             node.Index = network.Count;
@@ -85,6 +86,11 @@ public class Brain
         inputNodes = input.Count;
         outputNodes = output.Count;
         hiddenNodes = 0;
+    }
+
+    public Brain(Brain brain)
+    {
+        network = brain.Network;
     }
 
     #region Mutation Algorithm
@@ -574,9 +580,9 @@ public class Brain
             {
                 foreach (Synapse synapse in network[i].ReceivingSynapses)
                 {
-                    if (network.Find(x => x.Equals(synapse.SourceNode)) != null)
+                    if (network[synapse.SourceNode.Index] != null)
                     {
-                        updatedNodeValue = updatedNodeValue + (network.Find(x => x.Equals(synapse.SourceNode)).NodeValue * synapse.Value);
+                        updatedNodeValue = updatedNodeValue + (network[synapse.SourceNode.Index].NodeValue * synapse.Value);
                     }
                 }
                 
@@ -586,9 +592,9 @@ public class Brain
             {
                 foreach (Synapse synapse in network[i].ReceivingSynapses)
                 {
-                    if (network.Find(x => x.Equals(synapse.SourceNode)) != null)
+                    if (network[synapse.SourceNode.Index] != null)
                     {
-                        updatedNodeValue = updatedNodeValue + (network.Find(x => x.Equals(synapse.SourceNode)).NodeValue * synapse.Value);
+                        updatedNodeValue = updatedNodeValue + (network[synapse.SourceNode.Index].NodeValue * synapse.Value);
                     }
                 }
                 network[i].NodeFunction(updatedNodeValue);
