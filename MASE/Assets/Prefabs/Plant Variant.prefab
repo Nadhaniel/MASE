@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 381372c308d6e3e4399d498b5d3333fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  health: 100
 --- !u!1001 &5542443005813453493
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -21,7 +22,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2490277158419471808, guid: 6fdc0fb98b24c0444b5457aad7f9c76c, type: 3}
       propertyPath: m_Name
-      value: Plant
+      value: Plant Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 2490277158419471808, guid: 6fdc0fb98b24c0444b5457aad7f9c76c, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 3009791366787811194, guid: 6fdc0fb98b24c0444b5457aad7f9c76c, type: 3}
       propertyPath: m_RootOrder

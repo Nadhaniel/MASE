@@ -15,9 +15,10 @@ GameObject:
   - component: {fileID: 2547585212332420556}
   - component: {fileID: 2547585212332420595}
   - component: {fileID: 4176610689456892032}
-  m_Layer: 0
+  - component: {fileID: -8502938530969871583}
+  m_Layer: 7
   m_Name: SphereCreature
-  m_TagString: Untagged
+  m_TagString: Creature
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -146,3 +147,24 @@ MonoBehaviour:
   size: 0
   view_distance: 0
   speedMultiplier: 0
+--- !u!114 &-8502938530969871583
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2547585212332420554}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ef76916f0281aa48ae2317a593e8432, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  viewRadius: 10
+  viewAngle: 60
+  TargetMask:
+    serializedVersion: 2
+    m_Bits: 128
+  ObstacleMask:
+    serializedVersion: 2
+    m_Bits: 64
+  visibleTargets: []

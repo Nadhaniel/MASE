@@ -20,6 +20,7 @@ public class Creature : MonoBehaviour
     public float size;
     public float view_distance;
     public float speedMultiplier;
+    private FieldOfVision fov;
     Vector3 scaleChange;
     Color creatureColor;
 
@@ -31,10 +32,10 @@ public class Creature : MonoBehaviour
     private float speed;
     private float maturity;
     //Vision
-    private float dist_creature;
-    private float angle_creature;
-    private float dist_food;
-    private float angle_food;
+    private float dist_creature = 0f;
+    private float angle_creature = 0f;
+    private float dist_food = 0f;
+    private float angle_food = 0f;
     //Clock
     private float Time_Alive;
     
@@ -57,6 +58,7 @@ public class Creature : MonoBehaviour
             view_distance = dna.getGene("View_Distance");
             scaleChange = new Vector3(size, size, size);
             creatureColor = new Color(dna.getGene("Red_Color"), dna.getGene("Green_Color"), dna.getGene("Blue_Color"));
+            fov.viewRadius = view_distance;
 
             InputNodes.AddLast(new Node(NodeTypes.Input, hunger));
             InputNodes.AddLast(new Node(NodeTypes.Input, health));
@@ -95,6 +97,7 @@ public class Creature : MonoBehaviour
     private void Start()
     {
         //Initializing some basic stuff
+        fov = this.transform.GetComponent<FieldOfVision>();
         Init();
         StartCoroutine(CalcSpeed());
         isdead = false;
@@ -107,32 +110,35 @@ public class Creature : MonoBehaviour
 
     private void Update()
     {
-        float disttofood = 0f;
-        if (Physics.Raycast(rb.position, this.transform.TransformDirection(Vector3.forward), out RaycastHit hit, view_distance))
+        Transform ClosestFood = ClosestTarget(fov.visibleTargets, "Food");
+        Transform ClosestCreature = ClosestTarget(fov.visibleTargets, "Creature");
+        if (ClosestFood != null)
         {
-            //Debug.Log("Hit something");
-            Debug.DrawRay(rb.position, this.transform.TransformDirection(Vector3.left) * view_distance, Color.red);
-            if (hit.collider.tag == "Food")
-            {
-                disttofood = hit.distance;
-            }
+            dist_food = Vector3.Distance(this.transform.position, ClosestFood.position);
+            angle_food = CalculateAngleToTarget(ClosestFood);
         }
-        else 
+        if (ClosestCreature != null)
         {
-            //Debug.Log("Hit Nothing");
-            Debug.DrawRay(rb.position, this.transform.TransformDirection(Vector3.left) * view_distance, Color.black);
+            dist_creature = Vector3.Distance(this.transform.position, ClosestCreature.position);
+            angle_creature = CalculateAngleToTarget(ClosestCreature);
         }
+
+
         if (brain != null)
         {
             brain.Network[0].NodeValue = hunger;
             brain.Network[1].NodeValue = health;
             brain.Network[2].NodeValue = speed;
             brain.Network[3].NodeValue = maturity;
-            brain.Network[6].NodeValue = disttofood;
+            brain.Network[4].NodeValue = dist_creature;
+            brain.Network[5].NodeValue = angle_creature;
+            brain.Network[6].NodeValue = dist_food;
+            brain.Network[7].NodeValue = angle_food;
             brain.Network[8].NodeValue = Time_Alive;
 
             PhysicalTick();
             brain.BrainTick();
+
         }
 
         if (health > 0)
@@ -239,7 +245,31 @@ public class Creature : MonoBehaviour
         rb.AddForce(-transform.right * (speedMultiplier * Left));
         rb.AddForce(transform.right * (speedMultiplier * Right));
     }
-    
+
+    public float CalculateAngleToTarget(Transform targetTransform)
+    {
+        Vector3 direction = targetTransform.position - this.transform.position;
+        Debug.DrawRay(transform.position, direction, Color.cyan);
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg -90;
+
+        return angle;
+    }
+
+    public Transform ClosestTarget (List<(Transform, float)> visibleTargets, string Tag)
+    {
+        visibleTargets.OrderByDescending(x => x.Item2);
+        Transform closestTarget = null;
+
+        for (int i = 0; i < visibleTargets.Count; i++)
+        {
+            if (visibleTargets[i].Item1 != null && visibleTargets[i].Item1.tag == Tag)
+            {
+                closestTarget = visibleTargets[i].Item1;
+            }
+        }
+
+        return closestTarget;
+    }
 
     private void OnTriggerStay(Collider other)
     {

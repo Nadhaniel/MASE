@@ -28,7 +28,7 @@ public class DNA
         genes.Add("Strength", Random.Range(0f, 2f));
         genes.Add("Mutation_Size", Random.Range(0, 10));
         genes.Add("Mutation_Chance", Random.Range(0, 20));
-        genes.Add("View_Distance", Random.Range(0f, 2f));
+        genes.Add("View_Distance", Random.Range(1, 10));
         genes.Add("Red_Color", Random.Range(0f, 1f));
         genes.Add("Green_Color", Random.Range(0f, 1f));
         genes.Add("Blue_Color", Random.Range(0f, 1f));
@@ -74,8 +74,8 @@ public class DNA
                 genes[GeneKey] = int_value;
                 break;
             case "View_Distance":
-                float_value = Random.Range(1f, 20f);
-                genes[GeneKey] = float_value;
+                float_value = Random.Range(1, 10);
+                genes[GeneKey] = int_value;
                 break;
             case "Red_Color":
                 float_value = Random.Range(0f, 1f);

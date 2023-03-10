@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Food
   - water
+  - Creature
   layers:
   - Default
   - TransparentFX
@@ -13,8 +14,8 @@ TagManager:
   - Creature
   - Water
   - UI
-  - 
-  - 
+  - Obstacles
+  - TargetLayer
   - 
   - 
   - 

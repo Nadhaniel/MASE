@@ -7,7 +7,6 @@ public class SimulationManager : MonoBehaviour
     private int MaxPopulation;
     public GameObject creature;
     List<GameObject> AgentPopulation = new List<GameObject>();
-    List<GameObject> sortedList = new List<GameObject>();
     public static float elapsedtime = 0;
     public float timeScale = 1;
     int generation = 0;
@@ -20,7 +19,7 @@ public class SimulationManager : MonoBehaviour
 
     private void Start()
     {
-        MaxPopulation = 400;
+        MaxPopulation = 600;
         Generate();
         generation += 1;
         Time.timeScale = timeScale;
@@ -136,8 +135,8 @@ public class SimulationManager : MonoBehaviour
         Clear();
         Vector2 xRange = new Vector2(-1000, 1000);
         Vector2 zRange = new Vector2(-1000, 1000);
-        minHeight = 16;
-        maxHeight = 20;
+        minHeight = 10;
+        maxHeight = 16;
         int i = 0;
         while (i < MaxPopulation)
         {
@@ -149,11 +148,12 @@ public class SimulationManager : MonoBehaviour
                 if (hit.point.y > minHeight)
                 {
                     AgentPopulation.Add(Instantiate(creature, hit.point, Quaternion.identity));
-                    //instatiatedPrefab.transform.position = hit.point;
+                    AgentPopulation[i].gameObject.name = "Creature " + i;
                     i++;
                 }
             }
         }
+        Debug.Log(AgentPopulation.Count);
     }
 
     public void Clear()
@@ -162,6 +162,7 @@ public class SimulationManager : MonoBehaviour
         {
             DestroyImmediate(AgentPopulation[i]);
         }
+        AgentPopulation.Clear();
     }
 
 
