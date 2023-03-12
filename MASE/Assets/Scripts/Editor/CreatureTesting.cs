@@ -10,6 +10,7 @@ public class CreatureTesting : Editor
     {
         Creature creature = (Creature)target;
 
+        DrawDefaultInspector();
         if (GUILayout.Button("Mutate"))
         {
             creature.brain.MutateBrain();

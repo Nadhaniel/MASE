@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 2547585212332420595}
   - component: {fileID: 4176610689456892032}
   - component: {fileID: -8502938530969871583}
+  - component: {fileID: 3950887057287767432}
   m_Layer: 7
   m_Name: SphereCreature
   m_TagString: Creature
@@ -141,12 +142,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isChild: 0
+  TouchingCreature: 0
+  touchedCreature: {fileID: 0}
   Fitness: 0
+  EnergyDrain: 0
   isdead: 0
   energy: 0
   size: 0
   view_distance: 0
   speedMultiplier: 0
+  growthAmount: 0
+  hunger: 0
+  health: 0
+  speed: 0
+  maturity: 0
+  dist_creature: 0
+  angle_creature: 0
+  dist_food: 0
+  angle_food: 0
+  Time_Alive: 0
 --- !u!114 &-8502938530969871583
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -167,4 +181,15 @@ MonoBehaviour:
   ObstacleMask:
     serializedVersion: 2
     m_Bits: 64
-  visibleTargets: []
+--- !u!114 &3950887057287767432
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2547585212332420554}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d8112fc6a61de241a70242176362367, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

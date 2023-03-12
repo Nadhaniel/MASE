@@ -20,7 +20,10 @@ public class NewBehaviourScript : Editor
         Handles.color = Color.red;
         foreach ((Transform, float) trans in fov.visibleTargets)
         {
-            Handles.DrawLine(fov.transform.position, trans.Item1.position);
+            if (trans.Item1 != null)
+            {
+                Handles.DrawLine(fov.transform.position, trans.Item1.position);
+            }
         }
     }
 }
