@@ -216,7 +216,7 @@ public class Creature : MonoBehaviour
         float FoodDrain = 0f;
         if (Speed == 0)
         {
-            EnergyDrain = size * 0.05f;
+            EnergyDrain = size * 0.02f;
             if (energy > 0)
             {
                 energy -= EnergyDrain;
@@ -224,7 +224,7 @@ public class Creature : MonoBehaviour
         }
         else
         {
-            EnergyDrain = Speed / 2 * (size * 0.05f);
+            EnergyDrain = Speed / 2 * (size * 0.02f);
             if (energy > 0)
             {
                 energy -= EnergyDrain;

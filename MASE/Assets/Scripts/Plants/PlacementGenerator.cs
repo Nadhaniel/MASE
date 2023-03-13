@@ -43,19 +43,19 @@ public class PlacementGenerator : MonoBehaviour
                 continue;
             }
 
-            GameObject instatiatedPrefab = Instantiate(this.prefab, transform);
+            GameObject instatiatedPrefab = Instantiate(this.prefab, mesh.transform);
             instatiatedPrefab.transform.position = hit.point;
             instatiatedPrefab.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
-            instatiatedPrefab.transform.rotation = Quaternion.Lerp(transform.rotation, transform.rotation * Quaternion.FromToRotation(instatiatedPrefab.transform.up, hit.normal), rotateTowardsNormal);
+            instatiatedPrefab.transform.rotation = Quaternion.Lerp(mesh.transform.rotation, mesh.transform.rotation * Quaternion.FromToRotation(instatiatedPrefab.transform.up, hit.normal), rotateTowardsNormal);
             instatiatedPrefab.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
         }
     }
 
     public void Clear()
     {
-        while (transform.childCount != 0)
+        while (mesh.transform.childCount != 0)
         {
-            DestroyImmediate(transform.GetChild(0).gameObject);
+            DestroyImmediate(mesh.transform.GetChild(0).gameObject);
         }
     }
 }

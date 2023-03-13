@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class MapGenerator : MonoBehaviour
 {
@@ -13,15 +14,14 @@ public class MapGenerator : MonoBehaviour
 
     public TerrainData Terraindata;
     public NoiseData Noisedata;
+    public Toggle toggle;
 
     public bool autoUpdate;
 
-
-    void OnValuesUpdated()
+    public void OnValuesUpdated()
     {
-        if (!Application.isPlaying) {
-            DrawMapInEditor();
-        }
+        Noisedata.seed += 1;
+        DrawMapInEditor();
     }
 
     private void Awake()
@@ -31,6 +31,15 @@ public class MapGenerator : MonoBehaviour
 
     public void DrawMapInEditor()
     {
+        if (toggle.isOn)
+        {
+            Terraindata.useFalloff = true;
+        }
+        else
+        {
+            Terraindata.useFalloff = false;
+        }
+
         MapData mapData = GenerateMap(Vector2.zero);
 
         MapDisplay display = FindObjectOfType<MapDisplay>();

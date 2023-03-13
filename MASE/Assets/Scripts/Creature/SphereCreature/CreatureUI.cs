@@ -5,10 +5,10 @@ using UnityEngine.UI;
 
 public class CreatureUI : MonoBehaviour
 {
-    Creature Creature;
+    Canvas canvas;
 
     private void Start()
     {
-        Creature = this.GetComponent<Creature>();
+        
     }
 }
