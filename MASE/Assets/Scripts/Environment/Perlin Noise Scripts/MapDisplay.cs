@@ -17,8 +17,14 @@ public class MapDisplay : MonoBehaviour
     public void DrawMesh(MeshData meshData) {
         meshFilter.sharedMesh = meshData.CreateMesh();
 
-        meshFilter.transform.localScale = Vector3.one * FindObjectOfType<MapGenerator>().Terraindata.uniformScale;
-
+        if (FindObjectOfType<MapGenerator>() == null)
+        {
+            meshFilter.transform.localScale = Vector3.one * FindObjectOfType<MapGen_TerrainScene>().Terraindata.uniformScale;
+        }
+        else
+        {
+            meshFilter.transform.localScale = Vector3.one * FindObjectOfType<MapGenerator>().Terraindata.uniformScale;
+        }
         meshCollider.sharedMesh = meshFilter.sharedMesh;
     }
 }

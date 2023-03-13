@@ -8,8 +8,8 @@ public class MapGen_TerrainScene : MonoBehaviour
     public bool useFalloff;
     float[,] falloffmap;
 
-    private TerrainData Terraindata;
-    private NoiseData Noisedata;
+    public TerrainData Terraindata;
+    public NoiseData Noisedata;
 
     public bool autoUpdate;
 
@@ -19,6 +19,7 @@ public class MapGen_TerrainScene : MonoBehaviour
         Noisedata = SaveData.current.noisedata;
         falloffmap = FalloffGen.GenerateFalloffMap(Noisedata.mapHeight);
         DrawMap();
+        this.GetComponent<PlacementGenerator>().Generate();
     }
 
     public void DrawMap()
