@@ -27,7 +27,7 @@ public class DNA
         genes.Add("Max_Size", Random.Range(genes["Size"], 2f));
         genes.Add("Strength", Random.Range(0f, 2f));
         genes.Add("Mutation_Size", Random.Range(0, 10));
-        genes.Add("Mutation_Chance", Random.Range(0, 20));
+        genes.Add("Mutation_Chance", Random.Range(0, 5));
         genes.Add("View_Distance", Random.Range(1, 10));
         genes.Add("Red_Color", Random.Range(0f, 1f));
         genes.Add("Green_Color", Random.Range(0f, 1f));

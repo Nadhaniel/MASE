@@ -4,21 +4,22 @@ using UnityEngine;
 
 public class SimulationManager : MonoBehaviour
 {
+    public static SimulationManager instance;
     private int MaxPopulation;
     public GameObject creature;
-    //List<GameObject> AgentPopulation = new List<GameObject>();
+    public List<GameObject> creatures;
     public static float elapsedtime = 0;
     public float timeScale = 3;
     int generation = 0;
     public float trialTime = 30;
-
-    //New Generation system
 
     private float minHeight;
     private float maxHeight;
 
     private void Start()
     {
+        instance = this;
+        creatures = GameObject.FindGameObjectsWithTag("Creature").ToList();
         MaxPopulation = 600;
         Generate();
         generation += 1;
@@ -27,10 +28,10 @@ public class SimulationManager : MonoBehaviour
 
     private void Update()
     {
-        GameObject[] creatures = GameObject.FindGameObjectsWithTag("Creature");
-        if (creatures.Length <= 50)
+        creatures = GameObject.FindGameObjectsWithTag("Creature").ToList();
+        if (creatures.Count <= 50)
         {
-            MaxPopulation = 300;
+            MaxPopulation = 100;
             Generate();
         }
         MaxPopControl();
@@ -39,9 +40,9 @@ public class SimulationManager : MonoBehaviour
     public void Generate()
     {
         //Clear();
-        List<GameObject> AgentPopulation = new List<GameObject>();
         Vector2 xRange = new Vector2(-1000, 1000);
         Vector2 zRange = new Vector2(-1000, 1000);
+        int popCount = creatures.Count;
         minHeight = 10;
         maxHeight = 16;
         int i = 0;
@@ -54,13 +55,14 @@ public class SimulationManager : MonoBehaviour
             {
                 if (hit.point.y > minHeight)
                 {
-                    AgentPopulation.Add(Instantiate(creature, hit.point, Quaternion.identity));
-                    AgentPopulation[i].gameObject.name = "Creature " + i;
+                    var newcreature = Instantiate(creature, hit.point, Quaternion.identity);
+                    newcreature.name = "Creature: " + (popCount + 1);
+                    popCount += 1;
                     i++;
                 }
             }
         }
-        Debug.Log(AgentPopulation.Count);
+        Debug.Log(creatures.Count);
     }
 
     //public void Clear()
@@ -81,6 +83,23 @@ public class SimulationManager : MonoBehaviour
         }
     }
 
+    //Time controls
+    public void Pause()
+    {
+        Time.timeScale = 0;
+    }
 
+    public void Play()
+    {
+        Time.timeScale = 1;
+    }
+    public void FastForward()
+    {
+        Time.timeScale = 2;
+    }
+    public void FastForwardx2()
+    {
+        Time.timeScale = 3;
+    }
 
 }

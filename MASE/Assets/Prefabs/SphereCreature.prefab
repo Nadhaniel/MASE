@@ -16,7 +16,6 @@ GameObject:
   - component: {fileID: 2547585212332420595}
   - component: {fileID: 4176610689456892032}
   - component: {fileID: -8502938530969871583}
-  - component: {fileID: 3950887057287767432}
   m_Layer: 7
   m_Name: SphereCreature
   m_TagString: Creature
@@ -181,15 +180,3 @@ MonoBehaviour:
   ObstacleMask:
     serializedVersion: 2
     m_Bits: 64
---- !u!114 &3950887057287767432
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2547585212332420554}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9d8112fc6a61de241a70242176362367, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

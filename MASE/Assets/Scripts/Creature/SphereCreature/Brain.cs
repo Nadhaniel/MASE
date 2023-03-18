@@ -109,7 +109,7 @@ public class Brain
         if (mutationType == MutateBrainTypes.ADN)
         {
             var nodeFunctionType = (NodeTypes)Random.Range(0, 8);
-            Node newNode = new Node(NodeTypes.Hidden, 0f);
+            Node newNode = new Node(NodeTypes.Hidden, 0f, "H" + HiddenNodesCount);
             newNode.HiddenNodeType = nodeFunctionType;
             newNode.Index = network.Count;
             int sourceInputorHiddenLayer = Random.Range(0, 2); // May be problem here with random.range
@@ -625,107 +625,6 @@ public class Brain
         int randomIndex = 0;
         randomIndex = Random.Range(0, list.Count);
         return randomIndex;
-    }
-}
-
-public class Node
-{
-    private List<Synapse> receivingSynapses = new List<Synapse>();
-    private List<Synapse> sendingSynapses = new List<Synapse>();
-    private float nodeValue = 0;
-
-    private NodeTypes nodeType;
-    private NodeTypes hiddenNodeType;
-    private int index;
-    private string id;
-    public Node(NodeTypes nodetype, float value)
-    {
-        this.nodeType = nodetype;
-        this.nodeValue = value;
-        this.id = Guid.NewGuid().ToString();
-    }
-
-    public List<Synapse> ReceivingSynapses
-    {
-        get { return receivingSynapses; }
-        set { receivingSynapses = value; }
-    }
-
-    public List<Synapse> SendingSynapses
-    {
-        get { return sendingSynapses; }
-        set { sendingSynapses = value; }
-    }
-
-    public NodeTypes NodeType
-    {
-        get { return nodeType; }
-        set { nodeType = value; }
-    }
-
-    public NodeTypes HiddenNodeType
-    {
-        get { return hiddenNodeType; }
-        set { hiddenNodeType = value; }
-    }
-
-    public float NodeValue
-    {
-        get { return nodeValue; }
-        set { nodeValue = value; }
-    }
-
-    public int Index
-    {
-        get { return index; }
-        set { index = value; }
-    }
-
-    public string ID
-    {
-        get { return id; }
-    }
-
-    public void NodeFunction(float value)
-    {
-        switch (hiddenNodeType)
-        {
-            case NodeTypes.SIG:
-                value = Mathf.Sign(value);
-                break;
-            case NodeTypes.Output:
-                value = Mathf.Sign(value);
-                break;
-            case NodeTypes.LIN:
-                value = value;
-                break;
-            case NodeTypes.SQR:
-                value = (value * value);
-                break;
-            case NodeTypes.SIN:
-                value = Mathf.Sin(value);
-                break;
-            case NodeTypes.ABS:
-                value = Mathf.Abs(value);
-                break;
-            case NodeTypes.REL:
-                value = Mathf.Max(0, value); // Possibly wrong function
-                break;
-            case NodeTypes.GAU:
-                value = Mathf.Exp(-Mathf.Pow(value, 2));
-                break;
-            case NodeTypes.LAT:
-                if (Mathf.Abs(value) > 0)
-                {
-                    value = 0;
-                }
-                else if (value == 0)
-                {
-                    value = 0;
-                }
-                break;
-        }
-        nodeValue = value;
     }
 }
 

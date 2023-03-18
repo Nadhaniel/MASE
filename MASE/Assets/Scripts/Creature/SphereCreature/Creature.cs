@@ -2,8 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
-
 public class Creature : MonoBehaviour
 {
     //Checks
@@ -25,7 +23,7 @@ public class Creature : MonoBehaviour
     public float speedMultiplier;
     private FieldOfVision fov;
     Vector3 scaleChange;
-    Color creatureColor;
+    private Color creatureColor;
 
     //Constants
     public float growthAmount;
@@ -63,22 +61,22 @@ public class Creature : MonoBehaviour
             creatureColor = new Color(dna.getGene("Red_Color"), dna.getGene("Green_Color"), dna.getGene("Blue_Color"));
             fov.viewRadius = view_distance;
 
-            InputNodes.AddLast(new Node(NodeTypes.Input, hunger));
-            InputNodes.AddLast(new Node(NodeTypes.Input, health));
-            InputNodes.AddLast(new Node(NodeTypes.Input, speed));
-            InputNodes.AddLast(new Node(NodeTypes.Input, maturity));
-            InputNodes.AddLast(new Node(NodeTypes.Input, dist_creature));
-            InputNodes.AddLast(new Node(NodeTypes.Input, angle_creature));
-            InputNodes.AddLast(new Node(NodeTypes.Input, dist_food));
-            InputNodes.AddLast(new Node(NodeTypes.Input, angle_food));
-            InputNodes.AddLast(new Node(NodeTypes.Input, Time_Alive));
+            InputNodes.AddLast(new Node(NodeTypes.Input, hunger, "Hunger"));
+            InputNodes.AddLast(new Node(NodeTypes.Input, health, "Health"));
+            InputNodes.AddLast(new Node(NodeTypes.Input, speed, "Speed"));
+            InputNodes.AddLast(new Node(NodeTypes.Input, maturity, "Maturity"));
+            InputNodes.AddLast(new Node(NodeTypes.Input, dist_creature, "Distance to nearest creature"));
+            InputNodes.AddLast(new Node(NodeTypes.Input, angle_creature, "Angle to nearest creature"));
+            InputNodes.AddLast(new Node(NodeTypes.Input, dist_food, "Distance to nearest food"));
+            InputNodes.AddLast(new Node(NodeTypes.Input, angle_food, "Angle to nearest food"));
+            InputNodes.AddLast(new Node(NodeTypes.Input, Time_Alive, "Time Alive"));
 
-            OutputNodes.AddLast(new Node(NodeTypes.Output, 0)); //Move forward
-            OutputNodes.AddLast(new Node(NodeTypes.Output, 0)); //Move left
-            OutputNodes.AddLast(new Node(NodeTypes.Output, 0)); //Move right
-            OutputNodes.AddLast(new Node(NodeTypes.Output, 0)); //Move backward
-            OutputNodes.AddLast(new Node(NodeTypes.Output, 0)); //Want to eat
-            OutputNodes.AddLast(new Node(NodeTypes.Output, 0)); //Want to lay
+            OutputNodes.AddLast(new Node(NodeTypes.Output, 0, "Move Forward")); //Move forward
+            OutputNodes.AddLast(new Node(NodeTypes.Output, 0, "Move Left")); //Move left
+            OutputNodes.AddLast(new Node(NodeTypes.Output, 0, "Move Right")); //Move right
+            OutputNodes.AddLast(new Node(NodeTypes.Output, 0, "Move Backward")); //Move backward
+            OutputNodes.AddLast(new Node(NodeTypes.Output, 0, "Want to eat")); //Want to eat
+            OutputNodes.AddLast(new Node(NodeTypes.Output, 0, "Want to lay")); //Want to lay
             energy = 100f;
 
             brain = new Brain(InputNodes, OutputNodes);
@@ -113,7 +111,7 @@ public class Creature : MonoBehaviour
         Time_Alive = 0f;
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
             Transform ClosestFood = ClosestTarget(fov.visibleTargets, "Food");
             Transform ClosestCreature = ClosestTarget(fov.visibleTargets, "Creature");
@@ -147,7 +145,7 @@ public class Creature : MonoBehaviour
 
             if (health > 0)
             {
-                Time_Alive = Time_Alive + (Time.unscaledDeltaTime);
+                Time_Alive = Time_Alive + (Time.deltaTime);
             }
             if (brain.Network[14].NodeValue > 0 && maturity >= 100f && energy > 80f)
             {
@@ -155,16 +153,15 @@ public class Creature : MonoBehaviour
                 {
                     if (touchedCreature != null)
                     {
-                        Reproduce(touchedCreature.transform);
-                        energy -= 70f;
+                        if (touchedCreature.GetComponent<Creature>().maturity >= 100f)
+                        {
+                            Reproduce(touchedCreature.transform);
+                            energy -= 70f;
+                        }
                     }
                 }
             }
             Fitness = Time_Alive;
-    }
-
-    private void FixedUpdate()
-    {
         if (brain != null && isdead == false)
         {
             Movement(brain.Network[9].NodeValue, brain.Network[10].NodeValue, brain.Network[11].NodeValue, brain.Network[12].NodeValue);
@@ -261,6 +258,8 @@ public class Creature : MonoBehaviour
         offspring.GetComponent<Creature>().dna = newDNA;
         offspring.GetComponent<Creature>().brain = this.GetComponent<Creature>().brain;
         offspring.GetComponent<Creature>().isChild = true;
+        int popcount = SimulationManager.instance.creatures.Count;
+        offspring.name = "Creature: " + (popcount + 1);
         if (UnityEngine.Random.Range(0, parent.GetComponent<Creature>().dna.getGene("Mutation_Chance")) == 1)
         {
             offspring.GetComponent<Creature>().brain.MutateBrain();
@@ -343,5 +342,13 @@ public class Creature : MonoBehaviour
     public void OnMouseDown() //For camera following
     {
         CameraController.instance.FollowTransform = transform;
+        InfoGetter.instance.isSelected = true;
+        InfoGetter.instance.selectedCreature = this.gameObject;
+        InfoGetter.instance.HideRevealPanel();
+        if (BrainView.instance != null && BrainView.instance.gameObject.activeSelf)
+        {
+            BrainView.instance.ClearBrain();
+            BrainView.instance.Init();
+        }
     }
 }
