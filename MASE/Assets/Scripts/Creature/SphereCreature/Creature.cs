@@ -12,10 +12,11 @@ public class Creature : MonoBehaviour
     //statistics
     public float Fitness;
     public float EnergyDrain;
+    public int foodcollected;
 
     //Physical attributes
     public Brain brain;
-    private DNA dna;
+    public DNA dna;
     public bool isdead;
     public float energy;
     public float size;
@@ -37,16 +38,18 @@ public class Creature : MonoBehaviour
     public float angle_creature = 0f;
     public float dist_food = 0f;
     public float angle_food = 0f;
+    public float touchingwater = 0;
     //Clock
     public float Time_Alive;
     
     private Rigidbody rb;
-    LinkedList<Node> InputNodes = new LinkedList<Node>();
-    LinkedList<Node> OutputNodes = new LinkedList<Node>();
+    List<Node> InputNodes = new List<Node>();
+    List<Node> OutputNodes = new List<Node>();
 
 
     public void Init()
     {
+        foodcollected = 0;
         if (isChild == false)
         {
             dna = new DNA();
@@ -61,30 +64,37 @@ public class Creature : MonoBehaviour
             creatureColor = new Color(dna.getGene("Red_Color"), dna.getGene("Green_Color"), dna.getGene("Blue_Color"));
             fov.viewRadius = view_distance;
 
-            InputNodes.AddLast(new Node(NodeTypes.Input, hunger, "Hunger"));
-            InputNodes.AddLast(new Node(NodeTypes.Input, health, "Health"));
-            InputNodes.AddLast(new Node(NodeTypes.Input, speed, "Speed"));
-            InputNodes.AddLast(new Node(NodeTypes.Input, maturity, "Maturity"));
-            InputNodes.AddLast(new Node(NodeTypes.Input, dist_creature, "Distance to nearest creature"));
-            InputNodes.AddLast(new Node(NodeTypes.Input, angle_creature, "Angle to nearest creature"));
-            InputNodes.AddLast(new Node(NodeTypes.Input, dist_food, "Distance to nearest food"));
-            InputNodes.AddLast(new Node(NodeTypes.Input, angle_food, "Angle to nearest food"));
-            InputNodes.AddLast(new Node(NodeTypes.Input, Time_Alive, "Time Alive"));
+            InputNodes.Add(new Node(NodeTypes.Input, 1, "Bias", 0, 0));
+            InputNodes.Add(new Node(NodeTypes.Input, hunger, "Hunger", 1, 0));
+            InputNodes.Add(new Node(NodeTypes.Input, health, "Health", 2, 0));
+            InputNodes.Add(new Node(NodeTypes.Input, speed, "Speed", 3, 0));
+            InputNodes.Add(new Node(NodeTypes.Input, maturity, "Maturity", 4, 0));
+            InputNodes.Add(new Node(NodeTypes.Input, dist_creature, "Distance to nearest creature", 5, 0));
+            InputNodes.Add(new Node(NodeTypes.Input, angle_creature, "Angle to nearest creature", 6, 0));
+            InputNodes.Add(new Node(NodeTypes.Input, dist_food, "Distance to nearest food", 7, 0));
+            InputNodes.Add(new Node(NodeTypes.Input, angle_food, "Angle to nearest food", 8, 0));
+            InputNodes.Add(new Node(NodeTypes.Input, Time_Alive, "Time Alive", 9, 0));
+            InputNodes.Add(new Node(NodeTypes.Input, touchingwater, "Touching Water", 10, 0));
 
-            OutputNodes.AddLast(new Node(NodeTypes.Output, 0, "Move Forward")); //Move forward
-            OutputNodes.AddLast(new Node(NodeTypes.Output, 0, "Move Left")); //Move left
-            OutputNodes.AddLast(new Node(NodeTypes.Output, 0, "Move Right")); //Move right
-            OutputNodes.AddLast(new Node(NodeTypes.Output, 0, "Move Backward")); //Move backward
-            OutputNodes.AddLast(new Node(NodeTypes.Output, 0, "Want to eat")); //Want to eat
-            OutputNodes.AddLast(new Node(NodeTypes.Output, 0, "Want to lay")); //Want to lay
+            OutputNodes.Add(new Node(NodeTypes.Output, 0, "Move Forward", 0, 6)); //Move forward
+            OutputNodes.Add(new Node(NodeTypes.Output, 0, "Move Left", 1, 6)); //Move left
+            OutputNodes.Add(new Node(NodeTypes.Output, 0, "Move Right", 2, 6)); //Move right
+            OutputNodes.Add(new Node(NodeTypes.Output, 0, "Move Backward", 3, 6)); //Move backward
+            OutputNodes.Add(new Node(NodeTypes.Output, 0, "Rotate", 4, 6));
+            OutputNodes.Add(new Node(NodeTypes.Output, 0, "Want to eat", 5, 6)); //Want to eat
+            OutputNodes.Add(new Node(NodeTypes.Output, 0, "Want to lay", 6, 6)); //Want to lay
             energy = 100f;
 
             brain = new Brain(InputNodes, OutputNodes);
-            brain.MutateBrain();
+            for (int i = 0; i < 50; i++)
+            {
+                brain.MutateBrain();
+            }
         }
         else
         {
             growthAmount = 0.25f;
+            energy = 100f;
             hunger = 100f;
             health = 100f;
             maturity = 0f;
@@ -113,58 +123,58 @@ public class Creature : MonoBehaviour
 
     private void FixedUpdate()
     {
-            Transform ClosestFood = ClosestTarget(fov.visibleTargets, "Food");
-            Transform ClosestCreature = ClosestTarget(fov.visibleTargets, "Creature");
-            if (ClosestFood != null)
-            {
-                dist_food = Vector3.Distance(this.transform.position, ClosestFood.position);
-                angle_food = CalculateAngleToTarget(ClosestFood);
-            }
-            if (ClosestCreature != null)
-            {
-                dist_creature = Vector3.Distance(this.transform.position, ClosestCreature.position);
-                angle_creature = CalculateAngleToTarget(ClosestCreature);
-            }
+        Transform ClosestFood = ClosestTarget(fov.visibleTargets, "Food");
+        Transform ClosestCreature = ClosestTarget(fov.visibleTargets, "Creature");
+        if (ClosestFood != null)
+        {
+            dist_food = Vector3.Distance(this.transform.position, ClosestFood.position);
+            angle_food = CalculateAngleToTarget(ClosestFood);
+        }
+        if (ClosestCreature != null)
+        {
+            dist_creature = Vector3.Distance(this.transform.position, ClosestCreature.position);
+            angle_creature = CalculateAngleToTarget(ClosestCreature);
+        }
 
-            if (brain != null)
+        if (brain != null)
             {
-                brain.Network[0].NodeValue = hunger;
-                brain.Network[1].NodeValue = health;
-                brain.Network[2].NodeValue = speed;
-                brain.Network[3].NodeValue = maturity;
-                brain.Network[4].NodeValue = dist_creature;
-                brain.Network[5].NodeValue = angle_creature;
-                brain.Network[6].NodeValue = dist_food;
-                brain.Network[7].NodeValue = angle_food;
-                brain.Network[8].NodeValue = Time_Alive;
+            brain.Network[(0, true)][1].NodeValue = hunger;
+            brain.Network[(0, true)][2].NodeValue = health;
+            brain.Network[(0, true)][3].NodeValue = speed;
+            brain.Network[(0, true)][4].NodeValue = maturity;
+            brain.Network[(0, true)][5].NodeValue = dist_creature;
+            brain.Network[(0, true)][6].NodeValue = angle_creature;
+            brain.Network[(0, true)][7].NodeValue = dist_food;
+            brain.Network[(0, true)][8].NodeValue = angle_food;
+            brain.Network[(0, true)][9].NodeValue = Time_Alive;
+            brain.Network[(0, true)][10].NodeValue = touchingwater;
+            PhysicalTick();
+            brain.BrainTick();
 
-                PhysicalTick();
-                brain.BrainTick();
+        }
 
-            }
-
-            if (health > 0)
+        if (health > 0)
+        {
+            Time_Alive = Time_Alive + (Time.deltaTime);
+        }
+        if (brain.Network[(6, true)][6].NodeValue > 0 && maturity >= 100f && energy > 80f)
+        {
+            if (TouchingCreature == true)
             {
-                Time_Alive = Time_Alive + (Time.deltaTime);
-            }
-            if (brain.Network[14].NodeValue > 0 && maturity >= 100f && energy > 80f)
-            {
-                if (TouchingCreature == true)
+                if (touchedCreature != null)
                 {
-                    if (touchedCreature != null)
+                    if (touchedCreature.GetComponent<Creature>().maturity >= 100f)
                     {
-                        if (touchedCreature.GetComponent<Creature>().maturity >= 100f)
-                        {
-                            Reproduce(touchedCreature.transform);
-                            energy -= 70f;
-                        }
+                        Reproduce(touchedCreature.transform);
+                        energy -= 70f;
                     }
                 }
             }
-            Fitness = Time_Alive;
+        }
+        Fitness = Time_Alive * foodcollected;
         if (brain != null && isdead == false)
         {
-            Movement(brain.Network[9].NodeValue, brain.Network[10].NodeValue, brain.Network[11].NodeValue, brain.Network[12].NodeValue);
+            Movement(brain.Network[(6, true)][0].NodeValue, brain.Network[(6, true)][1].NodeValue, brain.Network[(6, true)][2].NodeValue, brain.Network[(6, true)][3].NodeValue, brain.Network[(6, true)][4].NodeValue);
         }
     }
 
@@ -272,14 +282,16 @@ public class Creature : MonoBehaviour
         }
     }
 
-    public void Movement(float Forward, float Backward, float Left, float Right)
-    { 
+    public void Movement(float Forward, float Backward, float Left, float Right, float rotation)
+    {
         //Vector3 movement = transform.forward * (speedMultiplier * Forward) + -transform.forward * (speedMultiplier * Backward) + -transform.right * (speedMultiplier * Left) + transform.right * (speedMultiplier * Right);
 
         rb.AddForce(transform.forward * (speedMultiplier * Forward));
         rb.AddForce(-transform.forward * (speedMultiplier * Backward));
         rb.AddForce(-transform.right * (speedMultiplier * Left));
         rb.AddForce(transform.right * (speedMultiplier * Right));
+        Vector3 rotationdir = new Vector3(0, rotation, 0);
+        this.transform.Rotate(rotationdir * speedMultiplier * Time.deltaTime);
     }
 
     public float CalculateAngleToTarget(Transform targetTransform)
@@ -309,19 +321,29 @@ public class Creature : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
-        if (other.gameObject.tag == "Food" && brain.Network[13].NodeValue > 0)
+        if (other.gameObject.tag == "Food" && brain.Network[(6, true)][5].NodeValue > 0)
         {  
             if (energy < 100f)
             {
                 other.GetComponent<Plant>().health -= 20f;
                 energy += 5f;
                 hunger -= 5f;
+                foodcollected += 1;
             }
         }
         if (other.gameObject.tag == "Creature")
         {
             TouchingCreature = true;
             touchedCreature = other.gameObject;
+        }
+        if (other.gameObject.tag == "water")
+        {
+            touchingwater = 1f;
+            health -= 5f;
+        }
+        else
+        {
+            touchingwater = 0f;
         }
     }
 

@@ -7,13 +7,14 @@ using Random = UnityEngine.Random;
 
 public class Brain
 {
-    private List<Node> network;
+    //private List<List<Node>> network;
+    private Dictionary<(int, bool), List<Node>> network; //each entry represents a layer of neurons
     private int synapseNum = 0;
     private int inputNodes;
     private int hiddenNodes;
     private int outputNodes;
 
-    public List<Node> Network
+    public Dictionary<(int, bool), List<Node>> Network
     {
         get { return network; }
         set { network = value; }
@@ -23,15 +24,7 @@ public class Brain
     {
         get 
         {
-            int count = 0;
-            foreach (var node in network)
-            {
-                if (node.NodeType == NodeTypes.Input)
-                {
-                    count++;
-                }
-            }
-            inputNodes = count;
+            inputNodes = network[(0, true)].Count;
             return inputNodes;
         }
     }
@@ -41,11 +34,11 @@ public class Brain
         get
         {
             int count = 0;
-            foreach (var node in network)
+            for (int i = 1; i < 6; i++)
             {
-                if (node.NodeType == NodeTypes.Hidden)
+                if (network.ContainsKey((i, true)))
                 {
-                    count++;
+                    count += network[(i, true)].Count;
                 }
             }
             hiddenNodes = count;
@@ -57,35 +50,56 @@ public class Brain
     {
         get
         {
-            int count = 0;
-            foreach (var node in network)
-            {
-                if (node.NodeType == NodeTypes.Output)
-                {
-                    count++;
-                }
-            }
-            outputNodes = count;
+            inputNodes = network[(6, true)].Count;
             return inputNodes;
         }
     }
 
-    public Brain(LinkedList<Node> input, LinkedList<Node> output)
+    public Brain(List<Node> input, List<Node> output)
     {
-        network = new List<Node>();
-        foreach (Node node in input)
+        network = new Dictionary<(int, bool), List<Node>>();
+        int numberLayers = Random.Range(1, 7); //Choosing the number of layers a network could have
+        network.Add((0, true), input); //Setups the input layer
+        network.Add((1, true), new List<Node>()); //Adding one active hidden layer the rest are inactive i.e. considered not to exist
+        #region Node Initialization
+        var activationFunction = (NodeTypes)Random.Range(0, 8);
+        Node initHidden = new Node(NodeTypes.Hidden, 0f, "H" + 0, 0, 1);
+        initHidden.HiddenNodeType = activationFunction;
+        Node InputSrc = PickRandomNode(network[(0, true)]);
+        network[(1, true)].Add(initHidden);
+        ADS(network[(0, true)][InputSrc.Index], network[(1, true)][initHidden.Index], 1f);
+        for (int i = 2; i < 6; i++)
         {
-            node.Index = network.Count;
-            network.Add(node);
+            if (i < numberLayers)
+            {
+                network.Add((i, true), new List<Node>());
+                var ActivationFunction = (NodeTypes)Random.Range(0, 8);
+                Node inithidden = new Node(NodeTypes.Hidden, 0f, "H" + 0, 0, i);
+                inithidden.HiddenNodeType = activationFunction;
+                Node inputsrc = PickRandomNode(network[(i - 1, true)]);
+                network[(i, true)].Add(inithidden);
+                ADS(network[(i - 1, true)][0], network[(i, true)][0], 1f);
+            }
+            else
+            {
+                network.Add((i, false), new List<Node>());
+            }
         }
-        foreach (Node node in output)
+        int layerbefore = 0;
+        if (numberLayers == 1)
         {
-            node.Index = network.Count;
-            network.Add(node);
+            layerbefore = numberLayers;
         }
+        else
+        {
+            layerbefore = numberLayers - 1;
+        }
+        network.Add((6, true), output);
+        Node randomOutputNode = PickRandomNode(network[(6, true)]);
+        ADS(network[(layerbefore, true)][0], network[(6, true)][randomOutputNode.Index], 1f);
+        #endregion  //Creates the first basic nodes and adds them to the network
         inputNodes = input.Count;
         outputNodes = output.Count;
-        hiddenNodes = 0;
     }
 
     public Brain(Brain brain)
@@ -93,6 +107,150 @@ public class Brain
         network = brain.Network;
     }
 
+    //Mutation related code
+    #region Mutation Methods
+    public void ADN(NodeTypes type, NodeTypes ActivationFunction, float value, string name, int index, int layer, Node SourceNode, Node ReceivingNode)
+    {
+        Node newNode = new Node(type, value, name, index, layer);
+        newNode.HiddenNodeType = ActivationFunction;
+        int layerBefore = SourceNode.Layer;
+        int layerAfter = ReceivingNode.Layer;
+
+        Synapse newSynapse1 = new Synapse(network[(layerBefore, true)][SourceNode.Index], newNode, 1);
+        synapseNum += 1;
+        Synapse newSynapse2 = new Synapse(newNode, network[(layerAfter, true)][ReceivingNode.Index], 1);
+        synapseNum += 1;
+        newNode.ReceivingSynapses.Add(newSynapse1);
+        network[(layerBefore, true)][SourceNode.Index].SendingSynapses.Add(newSynapse1);
+        newNode.SendingSynapses.Add(newSynapse2);
+        network[(layerAfter, true)][ReceivingNode.Index].ReceivingSynapses.Add(newSynapse2);
+        network[(layer, true)].Add(newNode);
+    }
+
+    public void ADS(Node SourceNode, Node ReceivingNode, float SynapseValue)
+    {
+        Synapse newSynapse = new Synapse(SourceNode, ReceivingNode, SynapseValue);
+        synapseNum += 1;
+        network[(SourceNode.Layer, true)][SourceNode.Index].SendingSynapses.Add(newSynapse);
+        network[(ReceivingNode.Layer, true)][ReceivingNode.Index].ReceivingSynapses.Add(newSynapse);
+    }
+    public void CHS(Synapse receivingsynapse, float value)
+    {
+        receivingsynapse.SourceNode.SendingSynapses.Find(x => x.ID == receivingsynapse.ID).Value = value;
+    }
+
+    public void FLP(Synapse synapse)
+    {
+        if (synapse.Disabled == false)
+        {
+            synapse.Disabled = true;
+        }
+        else
+        {
+            synapse.Disabled = false;
+        }
+    }
+
+    public void CHN(Node node, NodeTypes activationfunciton)
+    {
+        if (node.NodeType == NodeTypes.Hidden)
+        {
+            node.HiddenNodeType = activationfunciton;
+        }
+        else
+        {
+            //throw error
+        }
+    }
+
+    public void ADL()
+    {
+        Dictionary<(int, bool), List<Node>> new_network = new Dictionary<(int, bool), List<Node>>();
+        int count = 0;
+        for (int i = 0; i < network.Count; i++)
+        {
+            if (network.ContainsKey((i, false)))
+            {
+                count = i;
+                break;
+            }
+        }
+        for (int i = 0; i < network.Count; i++)
+        {
+
+            if (count == i)
+            {
+                new_network.Add((i, true), network[(i, false)]);
+            }
+            else
+            {
+                if (network.ContainsKey((i, false)))
+                {
+                    new_network.Add((i, false), network[(i, false)]);
+                }
+                else
+                {
+                    new_network.Add((i, true), network[(i, true)]);
+                }
+            }
+        }
+        network.Clear();
+        network = new_network;
+    }
+
+    public void RMN(Node node)
+    {
+        int layerKey = node.Layer;
+        if (network[(layerKey, true)].Count > 1)
+        {
+            for (int r = 0; r < node.ReceivingSynapses.Count; r++)
+            {
+                node.ReceivingSynapses[r].SourceNode.SendingSynapses.Remove(node.ReceivingSynapses[r]);
+                node.ReceivingSynapses.RemoveAt(r);
+                synapseNum -= 1;
+            }
+            for (int s = 0; s < node.SendingSynapses.Count; s++)
+            {
+                node.SendingSynapses[s].ReceivingNode.ReceivingSynapses.Remove(node.SendingSynapses[s]);
+                node.SendingSynapses.RemoveAt(s);
+                synapseNum -= 1;
+            }
+            network[(layerKey, true)].Remove(node);
+            for (int i = 0; i < network[(layerKey, true)].Count; i++) //Fixing the node indexes affter removal of node
+            {
+                network[(layerKey, true)][i].Index = i;
+                network[(layerKey, true)][i].NodeName = "H" + i;
+            }
+        }
+    }
+
+    public void RMS(Synapse synapse)
+    {
+        if (synapse.SourceNode.SendingSynapses.Count > 1)
+        {
+            synapse.SourceNode.SendingSynapses.Remove(synapse);
+            synapse.ReceivingNode.ReceivingSynapses.Remove(synapse);
+            synapseNum -= 1;
+        }
+    }
+
+    public void ClearFloatingStructures()
+    {
+        for (int l = 1; l < 6; l++)
+        {
+            if (network.ContainsKey((l, true)))
+            {
+                for (int n = 0; n < network[(l, true)].Count; n++)
+                {
+                    if (network[(l, true)][n].ReceivingSynapses.Count == 0 || network[(l, true)][n].SendingSynapses.Count == 0)
+                    {
+                        RMN(network[(l, true)][n]);
+                    }
+                }
+            }
+        }
+    }
+    #endregion
     #region Mutation Algorithm
     public void MutateBrain()
     {
@@ -103,528 +261,206 @@ public class Brain
         }
         else
         {
-            mutationType = (MutateBrainTypes)Random.Range(0, 7);
+            mutationType = (MutateBrainTypes)Random.Range(0, 5);
         }
-        //Debug.Log(mutationType.ToString());
         if (mutationType == MutateBrainTypes.ADN)
         {
-            var nodeFunctionType = (NodeTypes)Random.Range(0, 8);
-            Node newNode = new Node(NodeTypes.Hidden, 0f, "H" + HiddenNodesCount);
-            newNode.HiddenNodeType = nodeFunctionType;
-            newNode.Index = network.Count;
-            int sourceInputorHiddenLayer = Random.Range(0, 2); // May be problem here with random.range
-            if (HiddenNodesCount == 0 && sourceInputorHiddenLayer == 1)
+            var activationFunction = (NodeTypes)Random.Range(0, 8);
+            int layerKey = PickRandomLayer();
+            int layerafter = layerKey + 1;
+            while (!network.ContainsKey((layerafter, true)))
             {
-                sourceInputorHiddenLayer = 0;
+                layerafter += 1;
             }
-            int receivingHiddenOutputLayer = Random.Range(1, 3); // may be problem here with random.range
-            if (HiddenNodesCount == 0 && receivingHiddenOutputLayer == 1)
-            {
-                receivingHiddenOutputLayer = 2;
-            }
-
-            if (sourceInputorHiddenLayer == 0)
-            {
-                if (receivingHiddenOutputLayer == 2) //adding a node between a input node and a output node
-                {
-                    int randInputNode = PickRandomNodeIndex(network, NodeTypes.Input);
-                    int randOutputNode = PickRandomNodeIndex(network, NodeTypes.Output);
-
-                    Synapse newSynapse1 = new Synapse(network[randInputNode], newNode, 1);
-                    synapseNum += 1;
-                    Synapse newSynapse2 = new Synapse(newNode, network[randOutputNode], 1);
-                    synapseNum += 1;
-                    newNode.ReceivingSynapses.Add(newSynapse1);
-                    network[randInputNode].SendingSynapses.Add(newSynapse1);
-                    newNode.SendingSynapses.Add(newSynapse2);
-                    network[randOutputNode].ReceivingSynapses.Add(newSynapse2);
-                    network.Add(newNode);
-                }
-                else if (receivingHiddenOutputLayer == 1 && hiddenNodes > 0) //adding a node between a input node and a hidden node
-                {
-                    int randInputNode = PickRandomNodeIndex(network, NodeTypes.Input);
-                    int randHiddenNode = PickRandomNodeIndex(network, NodeTypes.Hidden);
-
-                    Synapse newSynapse1 = new Synapse(network[randInputNode], newNode, 1);
-                    synapseNum += 1;
-                    Synapse newSynapse2 = new Synapse(newNode, network[randHiddenNode], 1);
-                    synapseNum += 1;
-                    newNode.ReceivingSynapses.Add(newSynapse1);
-                    network[randInputNode].SendingSynapses.Add(newSynapse1);
-                    newNode.SendingSynapses.Add(newSynapse2);
-                    network[randHiddenNode].ReceivingSynapses.Add(newSynapse2);
-                    network.Add(newNode);
-                }
-            }
-            else if(sourceInputorHiddenLayer == 1)
-            {
-                if (receivingHiddenOutputLayer == 2) //adding a node between a hidden node and output node
-                {
-                    int randHiddenNode = PickRandomNodeIndex(network, NodeTypes.Hidden);
-                    int randOutputNode = PickRandomNodeIndex(network, NodeTypes.Output);
-
-                    Synapse newSynapse1 = new Synapse(network[randHiddenNode], newNode, 1);
-                    synapseNum += 1;
-                    Synapse newSynapse2 = new Synapse(newNode, network[randOutputNode], 1);
-                    synapseNum += 1;
-                    newNode.ReceivingSynapses.Add(newSynapse1);
-                    network[randHiddenNode].SendingSynapses.Add(newSynapse1);
-                    newNode.SendingSynapses.Add(newSynapse2);
-                    network[randOutputNode].ReceivingSynapses.Add(newSynapse2);
-                    network.Add(newNode);
-                }
-                else if(receivingHiddenOutputLayer == 1 && HiddenNodesCount > 1)
-                {
-                    int randHiddenNode = PickRandomNodeIndex(network, NodeTypes.Hidden);
-                    int secondrandHiddenNode = PickRandomNodeIndex(network, NodeTypes.Hidden);
-
-                    while (randHiddenNode == secondrandHiddenNode)
-                    {
-                        secondrandHiddenNode = PickRandomNodeIndex(network, NodeTypes.Hidden); //Could become very inefficient due to luck 
-                    }
-
-                    Synapse newSynapse1 = new Synapse(network[randHiddenNode], newNode, 1);
-                    synapseNum += 1;
-                    Synapse newSynapse2 = new Synapse(network[secondrandHiddenNode], newNode, 1);
-                    synapseNum += 1;
-                    newNode.ReceivingSynapses.Add(newSynapse1);
-                    network[randHiddenNode].SendingSynapses.Add(newSynapse1);
-                    newNode.SendingSynapses.Add(newSynapse2);
-                    network[secondrandHiddenNode].ReceivingSynapses.Add(newSynapse2);
-                    network.Add(newNode);
-                }
-            }
-            //Debug.Log(HiddenNodesCount.ToString());
+            Node receiving_from_node = PickRandomNode(network[(layerKey - 1, true)]);
+            Node sending_to_node = PickRandomNode(network[(layerafter, true)]);
+            ADN(NodeTypes.Hidden, activationFunction, 0f, "H" + network[(layerKey, true)].Count, network[(layerKey, true)].Count, layerKey, receiving_from_node, sending_to_node);
         }
-        else if (mutationType == MutateBrainTypes.ADS)
+        if (mutationType == MutateBrainTypes.ADS)
         {
-            int sourceInputorHiddenLayer = Random.Range(0, 3); // May be problem here with random.range
-            if (HiddenNodesCount == 0 && sourceInputorHiddenLayer == 1)
+            if (Random.Range(0, 2) == 0) //Picking between direct connection from input to output or any connection
             {
-                sourceInputorHiddenLayer = 0;
-            }
-            int receivingHiddenOutputLayer = Random.Range(1, 3); // may be problem here with random.range
-            if (HiddenNodesCount == 0 && receivingHiddenOutputLayer == 1)
-            {
-                receivingHiddenOutputLayer = 2;
-            }
-
-            if (sourceInputorHiddenLayer == 0)
-            {
-                if (receivingHiddenOutputLayer == 2)
+                int layerKey = PickRandomLayer();
+                int layerafter = layerKey + 1;
+                while (!network.ContainsKey((layerafter, true)))
                 {
-                    int randInputNode = PickRandomNodeIndex(network, NodeTypes.Input);
-                    int randOutputNode = PickRandomNodeIndex(network, NodeTypes.Output);
-
-                    Synapse newSynapse = new Synapse(network[randInputNode], network[randOutputNode], 1);
-                    network[randInputNode].SendingSynapses.Add(newSynapse);
-                    network[randOutputNode].ReceivingSynapses.Add(newSynapse);
-                    synapseNum += 1;
+                    layerafter += 1;
                 }
-                else if (receivingHiddenOutputLayer ==  1)
-                {
-                    int randInputNode = PickRandomNodeIndex(network, NodeTypes.Input);
-                    int randHiddenNode = PickRandomNodeIndex(network, NodeTypes.Hidden);
 
-                    Synapse newSynapse = new Synapse(network[randInputNode], network[randHiddenNode], 1);
-                    network[randInputNode].SendingSynapses.Add(newSynapse);
-                    network[randHiddenNode].ReceivingSynapses.Add(newSynapse);
-                    synapseNum += 1;
-                }
-            }
-            else if(sourceInputorHiddenLayer == 1)
-            {
-                if (receivingHiddenOutputLayer == 2)
+                List<Node> possiblesourcenodes = network[(layerKey, true)].FindAll(x => x.SendingSynapses.Count < network[(layerafter, true)].Count);
+                if (possiblesourcenodes.Count != 0)
                 {
-                    int randHiddenNode = PickRandomNodeIndex(network, NodeTypes.Hidden);
-                    int randOutputNode = PickRandomNodeIndex(network, NodeTypes.Output);
-
-                    Synapse newSynapse = new Synapse(network[randHiddenNode], network[randOutputNode], 1);
-                    network[randHiddenNode].SendingSynapses.Add(newSynapse);
-                    network[randOutputNode].ReceivingSynapses.Add(newSynapse);
-                    synapseNum += 1;
-                }
-                else if(receivingHiddenOutputLayer == 1 && HiddenNodesCount > 1)
-                {
-                    int randHiddenNode = PickRandomNodeIndex(network, NodeTypes.Hidden);
-                    int randHiddenNode2 = PickRandomNodeIndex(network, NodeTypes.Hidden);
-
-                    while (randHiddenNode == randHiddenNode2)
+                    Node sourcenode = PickRandomNode(possiblesourcenodes);
+                    List<Node> possiblereceivers = new List<Node>();
+                    for (int i = 0; i < network[(layerafter, true)].Count; i++)
                     {
-                        randHiddenNode = PickRandomNodeIndex(network, NodeTypes.Hidden); //Could become very inefficient due to luck 
-                    }
-
-                    Synapse newSynapse = new Synapse(network[randHiddenNode], network[randHiddenNode2], 1);
-                    network[randHiddenNode].SendingSynapses.Add(newSynapse);
-                    network[randHiddenNode2].ReceivingSynapses.Add(newSynapse);
-                    synapseNum += 1;
-                }
-            }
-        }
-        //else if (mutationType == MutateBrainTypes.RSN && HiddenNodesCount > 0)
-        //{
-        //    Dictionary<int, int> indexMap = new Dictionary<int, int>();
-        //    if (Random.Range(1, 3) == 1) // Delete Node if random == 1 otherwise delete synapse
-        //    {
-        //        int randomNode = PickRandomNodeIndex(network, NodeTypes.Hidden);
-        //        for (int s = 0; s < network[randomNode].ReceivingSynapses.Count; s++)
-        //        {
-        //            int SourceNodeIndex = network[randomNode].ReceivingSynapses[s].SourceNode.Index;
-        //            for (int i = 0; i < network[SourceNodeIndex].SendingSynapses.Count; i++)
-        //            {
-        //                if (network[SourceNodeIndex].SendingSynapses[i].ID == network[randomNode].ReceivingSynapses[s].ID)
-        //                {
-        //                    network[SourceNodeIndex].SendingSynapses.RemoveAt(i);
-        //                    synapseNum -= 1;
-        //                }
-        //            }
-        //        }
-        //        for (int s = 0; s < network[randomNode].SendingSynapses.Count; s++)
-        //        {
-        //            int ReceivingNodeIndex = network[randomNode].SendingSynapses[s].ReceivingNode.Index;
-        //            for (int i = 0; i < network[ReceivingNodeIndex].ReceivingSynapses.Count; i++)
-        //            {
-        //                if (network[randomNode].SendingSynapses[s].ID == network[ReceivingNodeIndex].ReceivingSynapses[i].ID)
-        //                {
-        //                    network[ReceivingNodeIndex].ReceivingSynapses.RemoveAt(i);
-        //                    synapseNum -= 1;
-        //                }
-        //            }
-        //        }
-        //        for (int i = 0; i < network.Count; i++)
-        //        {
-        //            indexMap.Add(network[i].Index, i);
-        //        }
-        //        network.Remove(network[randomNode]);
-        //        indexMap.Remove(randomNode);
-
-
-        //        //Reset hidden node IDs after removal
-        //        for (int j = 0; j < network.Count; j++)
-        //        {
-        //            if (j >= randomNode)
-        //            {
-        //                indexMap[network[j].Index] = j;
-        //                network[j].Index = j;
-        //            }
-        //            else
-        //            {
-        //                indexMap[network[j].Index] = j;
-        //            }
-        //        }
-        //    }
-        //    else if (synapseNum > 0)
-        //    {
-        //        int randomNode = PickRandomNodeIndex(network, NodeTypes.Hidden);
-        //        if (Random.Range(1, 3) == 1 && network[randomNode].SendingSynapses.Count > 0) // delete a sending synapse 
-        //        {
-        //            int randSynapse = PickRandomSynapse(network[randomNode].SendingSynapses);
-        //            int ReceivingNodeIndex = network[randomNode].SendingSynapses[randSynapse].ReceivingNode.Index;
-        //            for (int i = 0; i < network[ReceivingNodeIndex].ReceivingSynapses.Count; i++)
-        //            {
-        //                if (network[ReceivingNodeIndex].ReceivingSynapses[i].ID == network[randomNode].SendingSynapses[randSynapse].ID)
-        //                {
-        //                    network[ReceivingNodeIndex].ReceivingSynapses.RemoveAt(i);
-        //                    break;
-        //                }
-        //            }
-        //            network[randomNode].SendingSynapses.RemoveAt(randSynapse);
-        //        }
-        //        else if (network[randomNode].ReceivingSynapses.Count > 0)
-        //        {
-        //            int randSynapse = PickRandomSynapse(network[randomNode].ReceivingSynapses);
-        //            int SourceNodeIndex = network[randomNode].ReceivingSynapses[randSynapse].SourceNode.Index;
-        //            for (int i = 0; i < network[SourceNodeIndex].SendingSynapses.Count; i++)
-        //            {
-        //                if (network[SourceNodeIndex].SendingSynapses[i].ID == network[randomNode].ReceivingSynapses[randSynapse].ID)
-        //                {
-        //                    network[SourceNodeIndex].SendingSynapses.RemoveAt(i);
-        //                    break;
-        //                }
-        //            }
-        //            network[randomNode].ReceivingSynapses.RemoveAt(randSynapse);
-        //        }
-        //        if (network[randomNode].ReceivingSynapses.Count == 0 || network[randomNode].SendingSynapses.Count == 0) //a Final if statement to remove any floating structures in the nerual network
-        //        {
-        //            for (int i = 0; i < network[randomNode].ReceivingSynapses.Count; i++)
-        //            {
-        //                int sourceNodeIndex = network[randomNode].ReceivingSynapses[i].SourceNode.Index;
-        //                for (int s = 0; s < network[sourceNodeIndex].SendingSynapses.Count; s++)
-        //                {
-        //                    if (network[sourceNodeIndex].SendingSynapses[s].ID == network[randomNode].ReceivingSynapses[i].ID)
-        //                    {
-        //                        network[sourceNodeIndex].SendingSynapses.RemoveAt(s);
-        //                        network[randomNode].ReceivingSynapses.RemoveAt(i);
-        //                        break;
-        //                    }
-        //                }
-        //            }
-        //            for (int i = 0; i < network[randomNode].SendingSynapses.Count; i++)
-        //            {
-        //                int receivingNodeIndex = network[randomNode].SendingSynapses[i].ReceivingNode.Index;
-        //                for (int s = 0; s < network[receivingNodeIndex].ReceivingSynapses.Count; s++)
-        //                {
-        //                    if (network[receivingNodeIndex].ReceivingSynapses[s].ID == network[randomNode].SendingSynapses[i].ID)
-        //                    {
-        //                        network[receivingNodeIndex].ReceivingSynapses.RemoveAt(s);
-        //                        network[randomNode].SendingSynapses.RemoveAt(i);
-        //                        break;
-        //                    }
-        //                }
-        //            }
-        //            for (int i = 0; i < network.Count; i++)
-        //            {
-        //                indexMap.Add(network[i].Index, i);
-        //            }
-        //            network.Remove(network[randomNode]);
-        //            indexMap.Remove(randomNode);
-
-        //            //Reset hidden node IDs after removal
-        //            for (int j = 0; j < network.Count; j++)
-        //            {
-        //                if (j >= randomNode)
-        //                {
-        //                    indexMap[network[j].Index] = j;
-        //                    network[j].Index = j;
-        //                }
-        //                else
-        //                {
-        //                    indexMap[network[j].Index] = j;
-        //                }
-        //            }
-        //        }
-
-        //        synapseNum -= 1;
-        //    }
-        //}
-        else if (mutationType == MutateBrainTypes.CHS && synapseNum > 0)
-        {
-            if (Random.Range(1, 3) == 1) //Mutate a synapse coming from a input node
-            {
-                int randomNode = PickRandomNodeIndex(network, NodeTypes.Input);
-                if (network[randomNode].SendingSynapses.Count > 0)
-                {
-                    int randomSynIndex = PickRandomSynapse(network[randomNode].SendingSynapses);
-                    float offset = (Random.Range(-10, 10)) / 1000f;
-                    network[randomNode].SendingSynapses[randomSynIndex].Value += offset;
-                    for (int i = 0; i < network.Count; i++)
-                    {
-                        if (network[i].ID == network[randomNode].SendingSynapses[randomSynIndex].ReceivingNode.ID)
+                        if (network[(layerafter, true)][i].ReceivingSynapses.Any(r => r.SourceNode == sourcenode))
                         {
-                            for (int s = 0; s < network[i].ReceivingSynapses.Count; s++)
-                            {
-                                if (network[i].ReceivingSynapses[s].ID == network[randomNode].SendingSynapses[randomSynIndex].ID)
-                                {
-                                    network[i].ReceivingSynapses[s].Value += offset;
-                                    break;
-                                }
-                            }
-                            //network[i].ReceivingSynapses.Find(randomSyn).Value.Value = val;
-                            break;
+
+                        }
+                        else
+                        {
+                            possiblereceivers.Add(network[(layerafter, true)][i]);
                         }
                     }
-                    //network.Find(x => x.Equals(randomSyn.ReceivingNode)).ReceivingSynapses.Find(randomSyn).Value.Value = val;
-                }
-            }
-            else 
-            {
-                int randomNode = PickRandomNodeIndex(network, NodeTypes.Hidden);
-                if (network[randomNode].SendingSynapses.Count > 0)
-                {
-                    int randomSynIndex = PickRandomSynapse(network[randomNode].SendingSynapses);
-                    float offset = (Random.Range(-10, 10)) / 1000f;
-                    network[randomNode].SendingSynapses[randomSynIndex].Value += offset;
-                    for (int i = 0; i < network.Count; i++)
+                    if (possiblereceivers.Count != 0)
                     {
-                        if (network[i].ID == network[randomNode].SendingSynapses[randomSynIndex].ReceivingNode.ID)
-                        {
-                            for (int s = 0; s < network[i].ReceivingSynapses.Count; s++)
-                            {
-                                if (network[i].ReceivingSynapses[s].ID == network[randomNode].SendingSynapses[randomSynIndex].ID)
-                                {
-                                    network[i].ReceivingSynapses[s].Value += offset;
-                                    break;
-                                }
-                            }
-                            //network[i].ReceivingSynapses.Find(randomSyn).Value.Value = val;
-                            break;
-                        }
-                    }
-                    //network.Find(x => x.Equals(randomSyn.ReceivingNode)).ReceivingSynapses.Find(randomSyn).Value.Value = val;
-                }
-            }
-        }
-        else if (mutationType == MutateBrainTypes.DIS && synapseNum > 0)
-        {
-            if (Random.Range(1, 3) == 1) //Disable a synapse coming from a input node
-            {
-                int randomNode = PickRandomNodeIndex(network, NodeTypes.Input);
-                if (network[randomNode].SendingSynapses.Count > 0)
-                {
-                    int randomSynIndex = PickRandomSynapse(network[randomNode].SendingSynapses);
-                    network[randomNode].SendingSynapses[randomSynIndex].Disabled = true;
-                    for (int i = 0; i < network.Count; i++)
-                    {
-                        if (network[i].ID == network[randomNode].SendingSynapses[randomSynIndex].ReceivingNode.ID)
-                        {
-                            for (int s = 0; s < network[i].ReceivingSynapses.Count; s++)
-                            {
-                                if (network[i].ReceivingSynapses[s].ID == network[randomNode].SendingSynapses[randomSynIndex].ID)
-                                {
-                                    network[i].ReceivingSynapses[s].Disabled = true;
-                                    break;
-                                }
-                            }
-                            break;
-                        }
-                    }
-                    //network.Find(x => x.Equals(randomSyn.ReceivingNode)).ReceivingSynapses.Find(randomSyn).Value.Disabled = true;
-                }
-            }
-            else
-            {
-                int randomNode = PickRandomNodeIndex(network, NodeTypes.Hidden);
-                if (network[randomNode].SendingSynapses.Count > 0)
-                {
-                    int randomSynIndex = PickRandomSynapse(network[randomNode].SendingSynapses);
-                    network[randomNode].SendingSynapses[randomSynIndex].Disabled = true;
-                    for (int i = 0; i < network.Count; i++)
-                    {
-                        if (network[i].ID == network[randomNode].SendingSynapses[randomSynIndex].ReceivingNode.ID)
-                        {
-                            for (int s = 0; s < network[i].ReceivingSynapses.Count; s++)
-                            {
-                                if (network[i].ReceivingSynapses[s].ID == network[randomNode].SendingSynapses[randomSynIndex].ID)
-                                {
-                                    network[i].ReceivingSynapses[s].Disabled = true;
-                                    break;
-                                }
-                            }
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        else if (mutationType == MutateBrainTypes.ENB && synapseNum > 0)
-        {
-            if (Random.Range(1, 3) == 1) //Disable a synapse coming from a input node
-            {
-                int randomNode = PickRandomNodeIndex(network, NodeTypes.Input);
-                if (network[randomNode].SendingSynapses.Count > 0)
-                {
-                    int randomSynIndex = PickRandomSynapse(network[randomNode].SendingSynapses);
-                    network[randomNode].SendingSynapses[randomSynIndex].Disabled = false;
-                    for (int i = 0; i < network.Count; i++)
-                    {
-                        if (network[i].ID == network[randomNode].SendingSynapses[randomSynIndex].ReceivingNode.ID)
-                        {
-                            for (int s = 0; s < network[i].ReceivingSynapses.Count; s++)
-                            {
-                                if (network[i].ReceivingSynapses[s].ID == network[randomNode].SendingSynapses[randomSynIndex].ID)
-                                {
-                                    network[i].ReceivingSynapses[s].Disabled = false;
-                                    break;
-                                }
-                            }
-                            break;
-                        }
+                        Node receivingnode = PickRandomNode(possiblereceivers);
+                        ADS(sourcenode, receivingnode, 1f);
                     }
                 }
             }
             else
             {
-                int randomNode = PickRandomNodeIndex(network, NodeTypes.Hidden);
-                if (network[randomNode].SendingSynapses.Count > 0)
+                List<Node> sourcenodes = network[(0, true)].FindAll(x => x.SendingSynapses.Count < network[(6, true)].Count);
+                Node sourcenode = PickRandomNode(sourcenodes);
+                List<Node> possiblereceivers = new List<Node>();
+                for (int i = 0; i < network[(6, true)].Count; i++)
                 {
-                    int randomSynIndex = PickRandomSynapse(network[randomNode].SendingSynapses);
-                    network[randomNode].SendingSynapses[randomSynIndex].Disabled = false;
-                    for (int i = 0; i < network.Count; i++)
+                    if (network[(6, true)][i].ReceivingSynapses.Any(r => r.SourceNode == sourcenode))
                     {
-                        if (network[i].ID == network[randomNode].SendingSynapses[randomSynIndex].ReceivingNode.ID)
-                        {
-                            for (int s = 0; s < network[i].ReceivingSynapses.Count; s++)                                                      //Lot of repeition going on could break down into methods
-                            {
-                                if (network[i].ReceivingSynapses[s].ID == network[randomNode].SendingSynapses[randomSynIndex].ID)
-                                {
-                                    network[i].ReceivingSynapses[s].Disabled = false;
-                                    break;
-                                }
-                            }
-                            break;
-                        }
+
                     }
-                    //network.Find(x => x.Equals(randomSyn.ReceivingNode)).ReceivingSynapses.Find(randomSyn).Value.Disabled = true;
+                    else
+                    {
+                        possiblereceivers.Add(network[(6, true)][i]);
+                    }
+                }
+                if (possiblereceivers.Count != 0)
+                {
+                    Node receivingnode = PickRandomNode(possiblereceivers);
+                    ADS(sourcenode, receivingnode, 1f);
                 }
             }
         }
-        else if (mutationType == MutateBrainTypes.CHN && HiddenNodesCount > 0)
+        if (mutationType == MutateBrainTypes.CHS)
         {
-            int randomNode = PickRandomNodeIndex(network, NodeTypes.Hidden);
-            var nodeFunctionType = (NodeTypes)Random.Range(0, 8);
-            network[randomNode].HiddenNodeType = nodeFunctionType;
+            int layerKey = PickRandomLayer();
+            Node affectednode = PickRandomNode(network[(layerKey, true)]);
+            if (affectednode.ReceivingSynapses.Count > 0)
+            {
+                Synapse affectedsyn = PickRandomSynapse(affectednode.ReceivingSynapses);
+                float value = affectedsyn.Value + Random.Range(-1.5f, 1.5f);
+                CHS(affectedsyn, value);
+            }
         }
+        if (mutationType == MutateBrainTypes.FLP)
+        {
+            int layerKey = PickRandomLayer();
+            Node affectednode = PickRandomNode(network[(layerKey, true)]);
+            if (affectednode.ReceivingSynapses.Count > 0)
+            {
+                Synapse affectedsyn = PickRandomSynapse(affectednode.ReceivingSynapses);
+                FLP(affectedsyn);
+            }
+        }
+        if (mutationType == MutateBrainTypes.CHN)
+        {
+            int layerKey = PickRandomLayer();
+            Node affectednode = PickRandomNode(network[(layerKey, true)]);
+            NodeTypes activation = (NodeTypes)Random.Range(0, 8);
+            CHN(affectednode, activation);
+        }
+        if (mutationType == MutateBrainTypes.RMN)
+        {
+            int layerKey = PickRandomLayer();
+            Node node = PickRandomNode(network[(layerKey, true)]);
+            RMN(node);
+        }
+        if (mutationType == MutateBrainTypes.RMS)
+        {
+            int layerKey;
+            if (Random.Range(0, 2) == 0)
+            {
+                layerKey = PickRandomLayer();
+            }
+            else
+            {
+                layerKey = 0;
+            }
+            if (layerKey != 0)
+            {
+                Node node = PickRandomNode(network[(layerKey, true)]);
+                if (Random.Range(0, 2) == 0)
+                {
+                    Synapse synapse = PickRandomSynapse(node.SendingSynapses);
+                    RMS(synapse);
+                }
+                else
+                {
+                    Synapse synapse = PickRandomSynapse(node.ReceivingSynapses);
+                    RMS(synapse);
+                }
+            }
+            else
+            {
+                Node node = PickRandomNode(network[(layerKey, true)]);
+                if (node.SendingSynapses.Count > 0)
+                {
+                    Synapse synapse = PickRandomSynapse(node.SendingSynapses);
+                    RMS(synapse);
+                }
+            }
+        }
+        Debug.Log(mutationType);
     }
     #endregion
 
+    //feedforward algorithm
     public void BrainTick()
     {
-
-        for (int i = 0; i < network.Count; i++)
+        float updatedNodeValue = 0;
+        for (int i = 1; i < network.Count; i++)
         {
-            float updatedNodeValue = 0;
-            if (network[i].NodeType == NodeTypes.Hidden)
+            if (network.ContainsKey((i, true)))
             {
-                foreach (Synapse synapse in network[i].ReceivingSynapses)
+                foreach (Node node in network[(i, true)])
                 {
-                    //Debug.Log("Network total: " + network.Count + " Sending Synapse index:" + synapse.SourceNode.Index);
-                    if (network[synapse.SourceNode.Index] != null && synapse.Disabled == false)
+                    bool containssending = false;
+                    foreach (Synapse synapse in node.ReceivingSynapses)
                     {
-                        updatedNodeValue = updatedNodeValue + (network[synapse.SourceNode.Index].NodeValue * synapse.Value);
+                        if (synapse.Disabled == false)
+                        {
+                            containssending = true;
+                            updatedNodeValue = updatedNodeValue + (network[(synapse.SourceNode.Layer, true)][synapse.SourceNode.Index].NodeValue * synapse.Value);
+                        }
                     }
-                }
-                
-                network[i].NodeFunction(updatedNodeValue);
-            }
-            else if (network[i].NodeType == NodeTypes.Output)
-            {
-                foreach (Synapse synapse in network[i].ReceivingSynapses)
-                {
-                    //Debug.Log("Network Total: " + network.Count + " Sending Synapse index:" + synapse.SourceNode.Index);
-                    if (network[synapse.SourceNode.Index] != null && synapse.Disabled == false)
+                    if (containssending)
                     {
-                        updatedNodeValue = updatedNodeValue + (network[synapse.SourceNode.Index].NodeValue * synapse.Value);
+                        network[(i, true)][node.Index].NodeFunction(updatedNodeValue);
                     }
+                    updatedNodeValue = 0;
                 }
-                network[i].NodeFunction(updatedNodeValue);
             }
         }
     }
 
-    public int PickRandomNodeIndex(List<Node> list, NodeTypes type)
+    //Random pickers
+    public Node PickRandomNode(List<Node> list)
     {
         int randomNodeIndex = 0;
-        if (type == NodeTypes.Input)
-        {
-            randomNodeIndex = Random.Range(0, inputNodes);
-        }
-        else if (type == NodeTypes.Output)
-        {
-            randomNodeIndex = Random.Range(inputNodes, inputNodes + outputNodes);
-        }
-        else
-        {
-            randomNodeIndex = Random.Range(inputNodes + outputNodes, list.Count);
-        }
-        //Debug.Log("Random Index: " + randomNodeIndex + " " + type.ToString() + "Network total: " + network.Count);
-        return randomNodeIndex;
+        randomNodeIndex = Random.Range(0, list.Count);
+        return list[randomNodeIndex];
     }
 
-    public static int PickRandomSynapse(List<Synapse> list) //Reservoir Sampling Algorithm to pick random synapse due to linkedlist being inefficiant at index searching
+    public int PickRandomLayer()
+    {
+        List<(int, bool)> test = new List<(int, bool)>();
+        foreach ((int, bool) key in network.Keys)
+        {
+            if (key.Item1 > 0 && key.Item1 < 6 && key.Item2 == true)
+            {
+                test.Add(key);
+            }
+        }
+        (int, bool) layerkey = test[Random.Range(0, test.Count)];
+        return layerkey.Item1;
+    }
+    public static Synapse PickRandomSynapse(List<Synapse> list) //Reservoir Sampling Algorithm to pick random synapse due to linkedlist being inefficiant at index searching
     {
         int randomIndex = 0;
         randomIndex = Random.Range(0, list.Count);
-        return randomIndex;
+        return list[randomIndex];
     }
 }
 
@@ -678,13 +514,13 @@ public class Synapse
 
 enum MutateBrainTypes
 {
-    ADS,
-    ADN,//ADS - Add synapse, CHS - Change synapse, DIS - Disable Synapse, ENB - Enable a synapse, ADN - add a hidden Node/Neuron, CHN - Change Neuron function, RSN - Remove Synapse/Node
+    ADN,
+    ADS,//ADS - Add synapse, CHS - Change synapse, FLP - flips the synapse active bool, ADN - add a hidden Node/Neuron, CHN - Change Neuron function, RMN - Remove Node, RMS - Remove Synapse
     CHS,
-    DIS,
-    ENB,
+    FLP,
     CHN,
-    RSN
+    RMN,
+    RMS
 }
 public enum NodeTypes
 {

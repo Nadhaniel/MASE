@@ -12,14 +12,17 @@ public class Node
     private NodeTypes nodeType;
     private NodeTypes hiddenNodeType;
     private int index;
+    private int layer;
     private string id;
     private string nodeName;
-    public Node(NodeTypes nodetype, float value, string name)
+    public Node(NodeTypes nodetype, float value, string name, int index, int layer)
     {
         this.nodeType = nodetype;
         this.nodeValue = value;
         this.nodeName = name;
+        this.index = index;
         this.id = Guid.NewGuid().ToString();
+        this.layer = layer;
     }
 
     public List<Synapse> ReceivingSynapses
@@ -67,6 +70,12 @@ public class Node
     {
         get { return nodeName; }
         set { nodeName = value; }
+    }
+
+    public int Layer
+    {
+        get { return layer; }
+        set { layer = value; }
     }
 
     public void NodeFunction(float value)

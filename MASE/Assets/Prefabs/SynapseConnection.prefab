@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 2816237970862216455}
   - component: {fileID: 2297191525892581498}
   - component: {fileID: -1278040815733308128}
-  - component: {fileID: 6517639034711223406}
   m_Layer: 5
   m_Name: SynapseConnection
   m_TagString: SynapseUI
@@ -73,7 +72,7 @@ MonoBehaviour:
   m_useNativeSize: 0
   m_points:
   - {x: 0, y: 0}
-  lineThickness: 6
+  lineThickness: 10
   relativeSize: 0
   lineList: 0
   lineCaps: 0
@@ -93,16 +92,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5430ef93383d57043a78e3bad350d762, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &6517639034711223406
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5767268590689052617}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f142d0894862ec647932d75bd9ff3062, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  selected: 0

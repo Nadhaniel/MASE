@@ -14,7 +14,16 @@ public class NodeRef : MonoBehaviour
             {
                 ToolTipSystem.instance.toolTip.headerField.text = attachedNode.NodeName;
             }
-            ToolTipSystem.instance.toolTip.contentField.text = attachedNode.NodeValue.ToString();
+            if (attachedNode.NodeType == NodeTypes.Hidden)
+            {
+                string content = "Node Activation Function: " + attachedNode.HiddenNodeType + " \tValue: " + attachedNode.NodeValue.ToString();
+                ToolTipSystem.instance.toolTip.contentField.text = content;
+
+            }
+            else
+            {
+                ToolTipSystem.instance.toolTip.contentField.text = attachedNode.NodeValue.ToString();
+            }
         }
     }
 }
