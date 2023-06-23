@@ -14,4 +14,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/TerrainScene.unity
     guid: bbab2856cf161294b9dc814bc6eab5c8
+  - enabled: 1
+    path: Assets/Scenes/LoadGameScene.unity
+    guid: d22ab538dcf6c6a4ab2cfd0f721f791f
   m_configObjects: {}

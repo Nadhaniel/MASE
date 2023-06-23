@@ -36,9 +36,10 @@ public class DNA
 
     public void RandomizeGeneSet(float Mutation_Size)
     {
+        
         for (int i = 0; i < Mutation_Size; i++)
         {
-            var item = genes.ElementAt(i);
+            var item = genes.ElementAt(Random.Range(0, 10));
             RandomizeSpecificGene(item.Key);
         }
     }

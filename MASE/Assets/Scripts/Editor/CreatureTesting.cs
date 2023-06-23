@@ -13,7 +13,7 @@ public class CreatureTesting : Editor
         DrawDefaultInspector();
         if (GUILayout.Button("Mutate"))
         {
-            creature.brain.MutateBrain();
+            creature.brain.MutateNN(1);
         }
     }
 }

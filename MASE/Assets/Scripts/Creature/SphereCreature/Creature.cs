@@ -5,7 +5,6 @@ using UnityEngine;
 public class Creature : MonoBehaviour
 {
     //Checks
-    public bool isChild = false;
     public bool TouchingCreature = false;
     public GameObject touchedCreature;
 
@@ -41,77 +40,33 @@ public class Creature : MonoBehaviour
     public float touchingwater = 0;
     //Clock
     public float Time_Alive;
-    
+    //attached components
     private Rigidbody rb;
-    List<Node> InputNodes = new List<Node>();
-    List<Node> OutputNodes = new List<Node>();
+    //Brain settings
+    public int InputNodes = 10;
+    public float[] inputValues;
+    public float[] outputs;
 
 
     public void Init()
     {
-        foodcollected = 0;
-        if (isChild == false)
+        growthAmount = 0.25f;
+        if (SimulationManager.spawnfromsave == false)
         {
-            dna = new DNA();
-            growthAmount = 0.25f;
-            hunger = 100f;
-            health = 100f;
-            maturity = 0f;
-            size = dna.getGene("Size");
-            speedMultiplier = dna.getGene("Speed");
-            view_distance = dna.getGene("View_Distance");
-            scaleChange = new Vector3(size, size, size);
-            creatureColor = new Color(dna.getGene("Red_Color"), dna.getGene("Green_Color"), dna.getGene("Blue_Color"));
-            fov.viewRadius = view_distance;
-
-            InputNodes.Add(new Node(NodeTypes.Input, 1, "Bias", 0, 0));
-            InputNodes.Add(new Node(NodeTypes.Input, hunger, "Hunger", 1, 0));
-            InputNodes.Add(new Node(NodeTypes.Input, health, "Health", 2, 0));
-            InputNodes.Add(new Node(NodeTypes.Input, speed, "Speed", 3, 0));
-            InputNodes.Add(new Node(NodeTypes.Input, maturity, "Maturity", 4, 0));
-            InputNodes.Add(new Node(NodeTypes.Input, dist_creature, "Distance to nearest creature", 5, 0));
-            InputNodes.Add(new Node(NodeTypes.Input, angle_creature, "Angle to nearest creature", 6, 0));
-            InputNodes.Add(new Node(NodeTypes.Input, dist_food, "Distance to nearest food", 7, 0));
-            InputNodes.Add(new Node(NodeTypes.Input, angle_food, "Angle to nearest food", 8, 0));
-            InputNodes.Add(new Node(NodeTypes.Input, Time_Alive, "Time Alive", 9, 0));
-            InputNodes.Add(new Node(NodeTypes.Input, touchingwater, "Touching Water", 10, 0));
-
-            OutputNodes.Add(new Node(NodeTypes.Output, 0, "Move Forward", 0, 6)); //Move forward
-            OutputNodes.Add(new Node(NodeTypes.Output, 0, "Move Left", 1, 6)); //Move left
-            OutputNodes.Add(new Node(NodeTypes.Output, 0, "Move Right", 2, 6)); //Move right
-            OutputNodes.Add(new Node(NodeTypes.Output, 0, "Move Backward", 3, 6)); //Move backward
-            OutputNodes.Add(new Node(NodeTypes.Output, 0, "Rotate", 4, 6));
-            OutputNodes.Add(new Node(NodeTypes.Output, 0, "Want to eat", 5, 6)); //Want to eat
-            OutputNodes.Add(new Node(NodeTypes.Output, 0, "Want to lay", 6, 6)); //Want to lay
-            energy = 100f;
-
-            brain = new Brain(InputNodes, OutputNodes);
-            for (int i = 0; i < 50; i++)
-            {
-                brain.MutateBrain();
-            }
-        }
-        else
-        {
-            growthAmount = 0.25f;
+            foodcollected = 0;
             energy = 100f;
             hunger = 100f;
             health = 100f;
             maturity = 0f;
             size = dna.getGene("Size");
-            speedMultiplier = dna.getGene("Speed");
-            view_distance = dna.getGene("View_Distance");
-            scaleChange = new Vector3(size, size, size);
-            creatureColor = new Color(dna.getGene("Red_Color"), dna.getGene("Green_Color"), dna.getGene("Blue_Color"));
-            fov.viewRadius = view_distance;
         }
-    }
-
-    private void Start()
-    {
-        //Initializing some basic stuff
+        speedMultiplier = dna.getGene("Speed");
+        view_distance = dna.getGene("View_Distance");
+        scaleChange = new Vector3(size, size, size);
+        creatureColor = new Color(dna.getGene("Red_Color"), dna.getGene("Green_Color"), dna.getGene("Blue_Color"));
         fov = this.transform.GetComponent<FieldOfVision>();
-        Init();
+        fov.viewRadius = view_distance;
+        inputValues = new float[InputNodes];
         StartCoroutine(CalcSpeed());
         isdead = false;
         rb = this.GetComponent<Rigidbody>();
@@ -119,6 +74,18 @@ public class Creature : MonoBehaviour
         this.transform.localScale = scaleChange;
         this.GetComponent<MeshRenderer>().material.color = creatureColor;
         Time_Alive = 0f;
+        inputValues[0] = hunger;
+        inputValues[1] = health;
+        inputValues[2] = speed;
+        inputValues[3] = maturity;
+        inputValues[4] = dist_creature;
+        inputValues[5] = angle_creature;
+        inputValues[6] = dist_food;
+        inputValues[7] = angle_food;
+        inputValues[8] = Time_Alive;
+        inputValues[9] = touchingwater;
+        PhysicalTick();
+        outputs = brain.BrainTick_FF(inputValues);
     }
 
     private void FixedUpdate()
@@ -136,28 +103,23 @@ public class Creature : MonoBehaviour
             angle_creature = CalculateAngleToTarget(ClosestCreature);
         }
 
-        if (brain != null)
-            {
-            brain.Network[(0, true)][1].NodeValue = hunger;
-            brain.Network[(0, true)][2].NodeValue = health;
-            brain.Network[(0, true)][3].NodeValue = speed;
-            brain.Network[(0, true)][4].NodeValue = maturity;
-            brain.Network[(0, true)][5].NodeValue = dist_creature;
-            brain.Network[(0, true)][6].NodeValue = angle_creature;
-            brain.Network[(0, true)][7].NodeValue = dist_food;
-            brain.Network[(0, true)][8].NodeValue = angle_food;
-            brain.Network[(0, true)][9].NodeValue = Time_Alive;
-            brain.Network[(0, true)][10].NodeValue = touchingwater;
-            PhysicalTick();
-            brain.BrainTick();
-
-        }
-
-        if (health > 0)
+        inputValues[0] = hunger;
+        inputValues[1] = health;
+        inputValues[2] = speed;
+        inputValues[3] = maturity;
+        inputValues[4] = dist_creature;
+        inputValues[5] = angle_creature;
+        inputValues[6] = dist_food;
+        inputValues[7] = angle_food;
+        inputValues[8] = Time_Alive;
+        inputValues[9] = touchingwater;
+        PhysicalTick();
+        outputs = brain.BrainTick_FF(inputValues);
+        if (isdead == false)
         {
-            Time_Alive = Time_Alive + (Time.deltaTime);
+            Movement(outputs[0], outputs[1], outputs[2], outputs[3], outputs[4]);
         }
-        if (brain.Network[(6, true)][6].NodeValue > 0 && maturity >= 100f && energy > 80f)
+        if (outputs[5] > 0 && maturity >= 100f && energy > 80f)
         {
             if (TouchingCreature == true)
             {
@@ -171,11 +133,12 @@ public class Creature : MonoBehaviour
                 }
             }
         }
-        Fitness = Time_Alive * foodcollected;
-        if (brain != null && isdead == false)
+        if (health > 0)
         {
-            Movement(brain.Network[(6, true)][0].NodeValue, brain.Network[(6, true)][1].NodeValue, brain.Network[(6, true)][2].NodeValue, brain.Network[(6, true)][3].NodeValue, brain.Network[(6, true)][4].NodeValue);
+            Time_Alive = Time_Alive + (Time.deltaTime);
         }
+        Fitness = (Time_Alive * foodcollected) / 100;
+        brain.fitness = Fitness;
     }
 
     //Tick Methods
@@ -183,18 +146,21 @@ public class Creature : MonoBehaviour
     {
         if (isdead == false)
         {
-            if (maturity < 100f)
+            if (energy > 0)
             {
-                maturity += growthAmount * (energy * 0.02f);
-            }
-            if (size < dna.getGene("Max_Size"))
-            {
-                size += growthAmount * (energy * 0.02f);
-                if (size > dna.getGene("Max_Size"))
+                if (maturity < 100f)
                 {
-                    size = dna.getGene("Max_Size");
+                    maturity += growthAmount * (energy * 0.02f);
                 }
-                this.transform.localScale.Set(size, size, size);
+                if (size < dna.getGene("Max_Size"))
+                {
+                    size += growthAmount * (energy * 0.02f);
+                    if (size > dna.getGene("Max_Size"))
+                    {
+                        size = dna.getGene("Max_Size");
+                    }
+                    this.transform.localScale = new Vector3(size, size, size);
+                }
             }
             if (energy < 1)
             {
@@ -204,7 +170,8 @@ public class Creature : MonoBehaviour
             {
                 isdead = true;
                 this.GetComponent<MeshRenderer>().material.color = Color.red;
-                Destroy(this.gameObject);
+                SimulationManager.instance.creatures.Remove(this.gameObject);
+                this.gameObject.SetActive(false);
             }
             if (health < 100f && energy > 1)
             {
@@ -237,6 +204,10 @@ public class Creature : MonoBehaviour
                 energy -= EnergyDrain;
             }
         }
+        if (energy <=0 )
+        {
+            energy = 0;
+        }
 
         if (energy < 85)
         {
@@ -257,39 +228,69 @@ public class Creature : MonoBehaviour
         {
             hunger = 100f;
         }
+        if (hunger <= 0f)
+        {
+            hunger = 0f;
+        }
     }
 
     //Movement Methods
 
     public void Reproduce(Transform parent)
     {
-        GameObject offspring = Instantiate(this.gameObject, parent.position, Quaternion.identity);
-        DNA newDNA = new DNA();
-        offspring.GetComponent<Creature>().dna = newDNA;
-        offspring.GetComponent<Creature>().brain = this.GetComponent<Creature>().brain;
-        offspring.GetComponent<Creature>().isChild = true;
-        int popcount = SimulationManager.instance.creatures.Count;
-        offspring.name = "Creature: " + (popcount + 1);
-        if (UnityEngine.Random.Range(0, parent.GetComponent<Creature>().dna.getGene("Mutation_Chance")) == 1)
+        GameObject temp = CreaturePool.instance.GetPooledObject();
+        if (temp != null)
         {
-            offspring.GetComponent<Creature>().brain.MutateBrain();
-            offspring.GetComponent<Creature>().dna.Combine(this.GetComponent<Creature>().dna.Genes, parent.GetComponent<Creature>().dna.Genes);
-            offspring.GetComponent<Creature>().dna.RandomizeGeneSet(this.transform.GetComponent<Creature>().dna.getGene("Mutation_Size"));
-        }
-        else
-        {
-            offspring.GetComponent<Creature>().dna.Combine(this.GetComponent<Creature>().dna.Genes, parent.GetComponent<Creature>().dna.Genes);
+            temp.SetActive(true);
+            GameObject offspring = temp;
+            offspring.transform.position = parent.position;
+            DNA newDNA = new DNA();
+            offspring.GetComponent<Creature>().dna = newDNA;
+            if (this.brain.fitness >= parent.GetComponent<Creature>().brain.fitness)
+            {
+                offspring.GetComponent<Creature>().brain = this.GetComponent<Creature>().brain;
+            }
+            else
+            {
+                offspring.GetComponent<Creature>().brain = parent.GetComponent<Creature>().brain;
+            }
+            
+            //int popcount = SimulationManager.instance.creatures.Length;
+            //offspring.name = "Creature: " + (popcount + 1);
+            if (UnityEngine.Random.Range(0, parent.GetComponent<Creature>().dna.getGene("Mutation_Chance")) == 1)
+            {
+                offspring.GetComponent<Creature>().brain.MutateNN(1);
+                offspring.GetComponent<Creature>().dna.Combine(this.GetComponent<Creature>().dna.Genes, parent.GetComponent<Creature>().dna.Genes);
+                offspring.GetComponent<Creature>().dna.RandomizeGeneSet(this.transform.GetComponent<Creature>().dna.getGene("Mutation_Size"));
+            }
+            else
+            {
+                offspring.GetComponent<Creature>().dna.Combine(this.GetComponent<Creature>().dna.Genes, parent.GetComponent<Creature>().dna.Genes);
+            }
+            offspring.GetComponent<Creature>().Init();
+            SimulationManager.instance.creatures.Add(offspring);
         }
     }
 
     public void Movement(float Forward, float Backward, float Left, float Right, float rotation)
     {
         //Vector3 movement = transform.forward * (speedMultiplier * Forward) + -transform.forward * (speedMultiplier * Backward) + -transform.right * (speedMultiplier * Left) + transform.right * (speedMultiplier * Right);
-
-        rb.AddForce(transform.forward * (speedMultiplier * Forward));
-        rb.AddForce(-transform.forward * (speedMultiplier * Backward));
-        rb.AddForce(-transform.right * (speedMultiplier * Left));
-        rb.AddForce(transform.right * (speedMultiplier * Right));
+        if (Forward != float.NaN)
+        {
+           rb.AddForce(transform.forward * (speedMultiplier * Forward));
+        }
+        if (Backward != float.NaN)
+        {
+            rb.AddForce(-transform.forward * (speedMultiplier * Backward));
+        }
+        if (Left != float.NaN)
+        {
+            rb.AddForce(-transform.right * (speedMultiplier * Left));
+        }
+        if (Right != float.NaN)
+        {
+            rb.AddForce(transform.right * (speedMultiplier * Right));
+        }
         Vector3 rotationdir = new Vector3(0, rotation, 0);
         this.transform.Rotate(rotationdir * speedMultiplier * Time.deltaTime);
     }
@@ -321,14 +322,17 @@ public class Creature : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
-        if (other.gameObject.tag == "Food" && brain.Network[(6, true)][5].NodeValue > 0)
-        {  
-            if (energy < 100f)
+        if (outputs.Length > 0)
+        {
+            if (other.gameObject.tag == "Food" && outputs[6] > 0)
             {
-                other.GetComponent<Plant>().health -= 20f;
-                energy += 5f;
-                hunger -= 5f;
-                foodcollected += 1;
+                if (energy < 100f)
+                {
+                    other.GetComponent<Plant>().health -= 20f;
+                    energy += 5f;
+                    hunger -= 5f;
+                    foodcollected += 1;
+                }
             }
         }
         if (other.gameObject.tag == "Creature")

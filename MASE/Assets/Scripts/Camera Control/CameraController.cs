@@ -52,7 +52,6 @@ public class CameraController : MonoBehaviour
             FollowTransform = null;
             InfoGetter.instance.isSelected = false;
             InfoGetter.instance.HideRevealPanel();
-            BrainView.instance.HideShowPanel();
             ToolTipSystem.Hide();
         }
     }
@@ -176,5 +175,22 @@ public class CameraController : MonoBehaviour
             newZoom.y = 595;
             newZoom.z = -595;
         }
+        if (newPosition.x > 500f)
+        {
+            newPosition.x = 500f;
+        }
+        if (newPosition.z < -500f)
+        {
+            newPosition.z = -500f;
+        }
+        if (newPosition.x < -500f)
+        {
+            newPosition.x = -500f;
+        }
+        if (newPosition.z > 500f)
+        {
+            newPosition.z = 500f;
+        }
+
     }
 }

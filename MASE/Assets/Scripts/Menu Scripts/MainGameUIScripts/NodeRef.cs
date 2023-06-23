@@ -14,9 +14,9 @@ public class NodeRef : MonoBehaviour
             {
                 ToolTipSystem.instance.toolTip.headerField.text = attachedNode.NodeName;
             }
-            if (attachedNode.NodeType == NodeTypes.Hidden)
+            if (attachedNode.NodeType == Node_Type.Hidden)
             {
-                string content = "Node Activation Function: " + attachedNode.HiddenNodeType + " \tValue: " + attachedNode.NodeValue.ToString();
+                string content = "Node Activation Function: " + attachedNode.Activation_Type + " \tValue: " + attachedNode.NodeValue.ToString();
                 ToolTipSystem.instance.toolTip.contentField.text = content;
 
             }

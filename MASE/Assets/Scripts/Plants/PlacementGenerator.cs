@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -24,9 +25,10 @@ public class PlacementGenerator : MonoBehaviour
     [SerializeField] Vector3 minScale;
     [SerializeField] Vector3 maxScale;
 
-    public void Generate()
+    public GameObject[] Generate()
     {
         Clear();
+        List<GameObject> plants = new List<GameObject>();
         for (int i = 0; i < density; i++)
         {
             float sampleX = Random.Range(xRange.x, xRange.y);
@@ -43,12 +45,14 @@ public class PlacementGenerator : MonoBehaviour
                 continue;
             }
 
-            GameObject instatiatedPrefab = Instantiate(this.prefab, mesh.transform);
-            instatiatedPrefab.transform.position = hit.point;
-            instatiatedPrefab.transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
-            instatiatedPrefab.transform.rotation = Quaternion.Lerp(mesh.transform.rotation, mesh.transform.rotation * Quaternion.FromToRotation(instatiatedPrefab.transform.up, hit.normal), rotateTowardsNormal);
-            instatiatedPrefab.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+            plants.Add(Instantiate(this.prefab, mesh.transform));
+            plants.Last().transform.position = hit.point;
+            plants.Last().transform.Rotate(Vector3.up, Random.Range(rotationRange.x, rotationRange.y), Space.Self);
+            plants.Last().transform.rotation = Quaternion.Lerp(mesh.transform.rotation, mesh.transform.rotation * Quaternion.FromToRotation(plants.Last().transform.up, hit.normal), rotateTowardsNormal);
+            plants.Last().transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
         }
+
+        return plants.ToArray();
     }
 
     public void Clear()

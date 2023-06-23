@@ -12,14 +12,26 @@ public class MapGen_TerrainScene : MonoBehaviour
     public NoiseData Noisedata;
 
     public bool autoUpdate;
+    public static bool spawnfromsave = false;
 
     private void Start()
     {
-        Terraindata = SaveData.current.terrainData;
-        Noisedata = SaveData.current.noisedata;
+        Terraindata = new TerrainData();
+        Noisedata = new NoiseData();
+        Terraindata.uniformScale = SaveSimulationData.Current.terrainData.uniformScale;
+        Terraindata.useFalloff = SaveSimulationData.Current.terrainData.useFalloff;
+        Terraindata.meshHeightMultplier = SaveSimulationData.Current.terrainData.meshHeightMultplier;
+        Terraindata.meshHeightCurve = SaveSimulationData.Current.terrainData.meshHeightCurve;
+        Noisedata.mapWidth = SaveSimulationData.Current.noisedata.mapWidth;
+        Noisedata.mapHeight = SaveSimulationData.Current.noisedata.mapHeight;
+        Noisedata.noiseScale = SaveSimulationData.Current.noisedata.noiseScale;
+        Noisedata.persistance = SaveSimulationData.Current.noisedata.persistance;
+        Noisedata.lacunarity = SaveSimulationData.Current.noisedata.lacunarity;
+        Noisedata.seed = SaveSimulationData.Current.noisedata.seed;
+        Noisedata.offset = SaveSimulationData.Current.noisedata.offset;
+        Noisedata.octaves = SaveSimulationData.Current.noisedata.octaves;
         falloffmap = FalloffGen.GenerateFalloffMap(Noisedata.mapHeight);
         DrawMap();
-        this.GetComponent<PlacementGenerator>().Generate();
     }
 
     public void DrawMap()

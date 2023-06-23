@@ -4,7 +4,6 @@ using UnityEngine;
 
 [System.Serializable]
 [CreateAssetMenu()]
-
 public class NoiseData : UpdateableData
 {
     public int mapWidth;
