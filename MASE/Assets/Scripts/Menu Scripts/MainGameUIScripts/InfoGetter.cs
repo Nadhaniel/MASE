@@ -48,12 +48,12 @@ public class InfoGetter : MonoBehaviour
 
     public void InfoUpdate()
     {
-        Name.GetComponent<TMPro.TextMeshProUGUI>().text = "Name: " + selectedCreature.GetComponent<Creature>().name;
-        Health.GetComponent<TMPro.TextMeshProUGUI>().text = "Health: " + selectedCreature.GetComponent<Creature>().health;
-        Speed.GetComponent<TMPro.TextMeshProUGUI>().text = "Speed: " + selectedCreature.GetComponent<Creature>().speed;
-        Hunger.GetComponent<TMPro.TextMeshProUGUI>().text = "Hunger: " + selectedCreature.GetComponent<Creature>().hunger;
-        Maturity.GetComponent<TMPro.TextMeshProUGUI>().text = "Maturity: " + selectedCreature.GetComponent<Creature>().maturity;
-        Time_Alive.GetComponent<TMPro.TextMeshProUGUI>().text = "Time Alive: " + selectedCreature.GetComponent<Creature>().Time_Alive;
-        Energy.GetComponent<TMPro.TextMeshProUGUI>().text = "Energy: " + selectedCreature.GetComponent<Creature>().energy;
+        Name.GetComponent<TMPro.TextMeshProUGUI>().text = "Name: " + selectedCreature.GetComponent<CreatureJobMove>().name;
+        Health.GetComponent<TMPro.TextMeshProUGUI>().text = "Health: " + selectedCreature.GetComponent<CreatureJobMove>().health;
+        Speed.GetComponent<TMPro.TextMeshProUGUI>().text = "Speed: " + selectedCreature.GetComponent<CreatureJobMove>().speed;
+        Hunger.GetComponent<TMPro.TextMeshProUGUI>().text = "Hunger: " + selectedCreature.GetComponent<CreatureJobMove>().hunger;
+        Maturity.GetComponent<TMPro.TextMeshProUGUI>().text = "Maturity: " + selectedCreature.GetComponent<CreatureJobMove>().maturity;
+        Time_Alive.GetComponent<TMPro.TextMeshProUGUI>().text = "Time Alive: " + selectedCreature.GetComponent<CreatureJobMove>().Time_Alive;
+        Energy.GetComponent<TMPro.TextMeshProUGUI>().text = "Energy: " + selectedCreature.GetComponent<CreatureJobMove>().energy;
     }
 }

@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-[CustomEditor(typeof(Creature))]
+[CustomEditor(typeof(CreatureJobMove))]
 public class CreatureTesting : Editor
 {
     public override void OnInspectorGUI()
     {
-        Creature creature = (Creature)target;
+        CreatureJobMove creature = (CreatureJobMove)target;
 
         DrawDefaultInspector();
         if (GUILayout.Button("Mutate"))

@@ -30,24 +30,24 @@ public class BrainView : MonoBehaviour
         NodesImages = new List<GameObject>();
         synapseConnections = new List<GameObject>();
         selectedCreature = InfoGetter.instance.selectedCreature;
-        Genome = selectedCreature.GetComponent<Creature>().brain.NN_genome;
+        Genome = selectedCreature.GetComponent<CreatureJobMove>().brain.NN_genome;
         PlaceInputOutputNodes();
         PlaceSynapses();
     }
 
     public void PlaceInputOutputNodes()
     { 
-        for (int i = 0; i < selectedCreature.GetComponent<Creature>().brain.inputNodes.Count; i++)
+        for (int i = 0; i < selectedCreature.GetComponent<CreatureJobMove>().brain.inputNodes.Count; i++)
         {
             NodesImages.Add(Instantiate(brainNodeImage, InputPanel.transform));
             NodesImages.Last().GetComponentInChildren<TMPro.TextMeshProUGUI>().text = i.ToString();
-            NodesImages.Last().GetComponent<NodeRef>().attachedNode = selectedCreature.GetComponent<Creature>().brain.inputNodes[i];
+            NodesImages.Last().GetComponent<NodeRef>().attachedNode = selectedCreature.GetComponent<CreatureJobMove>().brain.inputNodes[i];
         }
-        for (int i = 0; i < selectedCreature.GetComponent<Creature>().brain.outputNodes.Count; i++)
+        for (int i = 0; i < selectedCreature.GetComponent<CreatureJobMove>().brain.outputNodes.Count; i++)
         {
             NodesImages.Add(Instantiate(brainNodeImage, OutputPanel.transform));
             NodesImages.Last().GetComponentInChildren<TMPro.TextMeshProUGUI>().text = i.ToString();
-            NodesImages.Last().GetComponent<NodeRef>().attachedNode = selectedCreature.GetComponent<Creature>().brain.outputNodes[i];
+            NodesImages.Last().GetComponent<NodeRef>().attachedNode = selectedCreature.GetComponent<CreatureJobMove>().brain.outputNodes[i];
         }
     }
 

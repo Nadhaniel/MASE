@@ -79,18 +79,18 @@ public class EscapeMenu : MonoBehaviour
         {
             creaturesave[i] = new SaveCreature();
             creaturesave[i].position = creatures[i].transform.position;
-            creaturesave[i].foodcollected = creatures[i].GetComponent<Creature>().foodcollected;
-            creaturesave[i].energy = creatures[i].GetComponent<Creature>().energy;
-            creaturesave[i].size = creatures[i].GetComponent<Creature>().size;
-            creaturesave[i].hunger = creatures[i].GetComponent<Creature>().hunger;
-            creaturesave[i].health = creatures[i].GetComponent<Creature>().health;
-            creaturesave[i].maturity = creatures[i].GetComponent<Creature>().maturity;
-            creaturesave[i].Time_Alive = creatures[i].GetComponent<Creature>().Time_Alive;
-            creaturesave[i].dnaJSON.genes = creatures[i].GetComponent<Creature>().dna.Genes.Values.ToList();
-            creaturesave[i].name = creatures[i].GetComponent<Creature>().name;
-            creaturesave[i].NNGenomeJson.nodeGenes = NEATUtils.SetGenomeJSON(creatures[i].GetComponent<Creature>().brain.NN_genome).Item1;
-            creaturesave[i].NNGenomeJson.connectionGenes = NEATUtils.SetGenomeJSON(creatures[i].GetComponent<Creature>().brain.NN_genome).Item2;
-            creaturesave[i].NNGenomeJson.species_num = creatures[i].GetComponent<Creature>().brain.NN_genome.species_num;
+            creaturesave[i].foodcollected = creatures[i].GetComponent<CreatureJobMove>().foodcollected;
+            creaturesave[i].energy = creatures[i].GetComponent<CreatureJobMove>().energy;
+            creaturesave[i].size = creatures[i].GetComponent<CreatureJobMove>().size;
+            creaturesave[i].hunger = creatures[i].GetComponent<CreatureJobMove>().hunger;
+            creaturesave[i].health = creatures[i].GetComponent<CreatureJobMove>().health;
+            creaturesave[i].maturity = creatures[i].GetComponent<CreatureJobMove>().maturity;
+            creaturesave[i].Time_Alive = creatures[i].GetComponent<CreatureJobMove>().Time_Alive;
+            creaturesave[i].dnaJSON.genes = creatures[i].GetComponent<CreatureJobMove>().dna.Genes.Values.ToList();
+            creaturesave[i].name = creatures[i].GetComponent<CreatureJobMove>().name;
+            creaturesave[i].NNGenomeJson.nodeGenes = NEATUtils.SetGenomeJSON(creatures[i].GetComponent<CreatureJobMove>().brain.NN_genome).Item1;
+            creaturesave[i].NNGenomeJson.connectionGenes = NEATUtils.SetGenomeJSON(creatures[i].GetComponent<CreatureJobMove>().brain.NN_genome).Item2;
+            creaturesave[i].NNGenomeJson.species_num = creatures[i].GetComponent<CreatureJobMove>().brain.NN_genome.species_num;
         }
 
         return creaturesave;

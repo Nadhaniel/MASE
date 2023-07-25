@@ -2,208 +2,51 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-
-public class Creature : MonoBehaviour
+public class CreatureJobMove : MonoBehaviour
 {
     //Checks
     public bool TouchingCreature = false;
     public GameObject touchedCreature;
 
     //statistics
-    private float fitness;
-    private float energyDrain;
-    private int foodcollected;
+    public float Fitness;
+    public float EnergyDrain;
+    public int foodcollected;
 
     //Physical attributes
-    private Brain brain;
-    private DNA dna;
-    private bool isdead;
-    private float energy;
-    private float size;
-    private float view_distance;
-    private float speedMultiplier;
+    public Brain brain;
+    public DNA dna;
+    public bool isdead;
+    public float energy;
+    public float size;
+    public float view_distance;
+    public float speedMultiplier;
     private FieldOfVision fov;
-    private Vector3 scaleChange;
+    Vector3 scaleChange;
     private Color creatureColor;
 
     //Constants
-    private float growthAmount;
+    public float growthAmount;
     //States
-    private float hunger;
-    private float health;
-    private float speed;
-    private float maturity;
+    public float hunger;
+    public float health;
+    public float speed;
+    public float maturity;
     //Vision
-    private float dist_creature = 0f;
-    private float angle_creature = 0f;
-    private float dist_food = 0f;
-    private float angle_food = 0f;
-    private float touchingwater = 0;
+    public float dist_creature = 0f;
+    public float angle_creature = 0f;
+    public float dist_food = 0f;
+    public float angle_food = 0f;
+    public float touchingwater = 0;
     //Clock
-    private float time_alive;
+    public float Time_Alive;
     //attached components
     private Rigidbody rb;
     //Brain settings
-    private int InputNodes = 10;
-    private float[] inputValues;
-    private float[] outputs;
+    public int InputNodes = 10;
+    public float[] inputValues;
+    public float[] outputs;
 
-    public Brain Brain
-    {
-        get { return brain; }
-        set { brain = value; }
-    }
-
-    public DNA DNA
-    {
-        get { return dna; }
-        set { dna = value; }
-    }
-
-    public float Fitness
-    {
-        get { return fitness; }
-        set { fitness = value; }
-    }
-
-    public float EnergyDrain
-    {
-        get { return energyDrain; }
-        set { energyDrain = value; }
-    }
-
-    public int FoodCollected
-    {
-        get { return foodcollected; }
-        set { foodcollected = value; }
-    }
-
-    public bool IsDead
-    {
-        get { return isdead; }
-        set { isdead = value; }
-    }
-
-    public float Energy
-    {
-        get { return energy; }
-        set { energy = value; }
-    }
-
-    public float Size
-    {
-        get { return size; }
-        set { size = value; }
-    }
-    public float View_distance
-    {
-        get { return view_distance; }
-        set { view_distance = value; }
-    }
-    public float SpeedMultiplier
-    {
-        get {return speedMultiplier;}
-        set { speedMultiplier = value;}
-    }
-
-    public FieldOfVision FOV
-    { get { return fov; } set {  fov = value; } }
-
-    public Vector3 ScaleChange
-    {
-        get { return scaleChange; }
-        set { scaleChange = value; }
-    }
-    public Color CreatureColor
-    {
-        get { return creatureColor; }
-        set { creatureColor = value; }
-    }
-    
-    public float GrowthAmount
-    {
-        get { return growthAmount; }
-        set
-        {
-            growthAmount = value;
-        }
-    }
-
-    public float Hunger
-    {
-        get {return hunger;
-        }
-        set { hunger = value; }
-    }
-
-    public float Health
-    {
-        get { return health; }
-        set { health = value; }
-    }
-    public float Speed
-    {
-        get { return speed; }
-        set { speed = value; }
-    }
-    public float Maturity
-    {
-        get { return maturity; }
-        set { maturity = value; }
-    }
-
-    public float Dist_creature
-    {
-        get { return dist_creature; }
-        set { dist_creature = value; }
-    }
-    public float Angle_creature
-    {
-        get { return angle_creature; }
-        set { angle_creature = value; }
-    }
-    public float Dist_food
-    {
-        get { return dist_food; }
-        set { dist_food = value; }
-    }
-    public float Angle_food
-    {
-        get { return Angle_food; }
-        set { angle_food = value; }
-    }
-    public float Touchingwater
-    {
-        get { return touchingwater; }
-        set { touchingwater = value; }
-    }
-
-    public float Time_alive
-    {
-        get { return time_alive; }
-        set { time_alive = value; }
-    }
-
-    public Rigidbody RB
-    {
-        get { return rb; }
-    }
-
-    public int Inputnodes
-    {
-        get { return InputNodes; }
-        set { InputNodes = value; }
-    }
-    public float[] InputValues
-    {
-        get { return inputValues; }
-        set { inputValues = value; }
-    }
-    public float[] Outputs
-    {
-        get { return outputs; }
-        set { outputs = value; }
-    }
 
     public void Init()
     {
@@ -230,7 +73,7 @@ public class Creature : MonoBehaviour
         //Initializing stats
         this.transform.localScale = scaleChange;
         this.GetComponent<MeshRenderer>().material.color = creatureColor;
-        time_alive = 0f;
+        Time_Alive = 0f;
         inputValues[0] = hunger;
         inputValues[1] = health;
         inputValues[2] = speed;
@@ -239,7 +82,7 @@ public class Creature : MonoBehaviour
         inputValues[5] = angle_creature;
         inputValues[6] = dist_food;
         inputValues[7] = angle_food;
-        inputValues[8] = time_alive;
+        inputValues[8] = Time_Alive;
         inputValues[9] = touchingwater;
         PhysicalTick();
         outputs = brain.BrainTick_FF(inputValues);
@@ -268,7 +111,7 @@ public class Creature : MonoBehaviour
         inputValues[5] = angle_creature;
         inputValues[6] = dist_food;
         inputValues[7] = angle_food;
-        inputValues[8] = time_alive;
+        inputValues[8] = Time_Alive;
         inputValues[9] = touchingwater;
         PhysicalTick();
         outputs = brain.BrainTick_FF(inputValues);
@@ -292,9 +135,9 @@ public class Creature : MonoBehaviour
         }
         if (health > 0)
         {
-            time_alive = time_alive + (Time.deltaTime);
+            Time_Alive = Time_Alive + (Time.deltaTime);
         }
-        Fitness = (time_alive * foodcollected) / 100;
+        Fitness = (Time_Alive * foodcollected) / 100;
         brain.fitness = Fitness;
     }
 

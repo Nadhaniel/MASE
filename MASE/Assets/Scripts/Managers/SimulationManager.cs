@@ -64,35 +64,35 @@ public class SimulationManager : MonoBehaviour
                 {
                     temp.SetActive(true);
                     creatures.Add(temp);
-                    creatures.Last().GetComponent<Creature>().brain = new Brain(NEATUtils.SetGenome(SaveSimulationData.Current.creatures.Last().NNGenomeJson));
-                    creatures.Last().GetComponent<Creature>().dna = new DNA();
-                    creatures.Last().GetComponent<Creature>().dna.Genes["Speed"] = SaveSimulationData.Current.creatures[i].dnaJSON.genes[0];
-                    creatures.Last().GetComponent<Creature>().dna.Genes["Size"] = SaveSimulationData.Current.creatures[i].dnaJSON.genes[1];
-                    creatures.Last().GetComponent<Creature>().dna.Genes["Max_Size"] = SaveSimulationData.Current.creatures[i].dnaJSON.genes[2];
-                    creatures.Last().GetComponent<Creature>().dna.Genes["Strength"] = SaveSimulationData.Current.creatures[i].dnaJSON.genes[3];
-                    creatures.Last().GetComponent<Creature>().dna.Genes["Mutation_Size"] = SaveSimulationData.Current.creatures[i].dnaJSON.genes[4];
-                    creatures.Last().GetComponent<Creature>().dna.Genes["Mutation_Chance"] = SaveSimulationData.Current.creatures[i].dnaJSON.genes[5];
-                    creatures.Last().GetComponent<Creature>().dna.Genes["View_Distance"] = SaveSimulationData.Current.creatures[i].dnaJSON.genes[6];
-                    creatures.Last().GetComponent<Creature>().dna.Genes["Red_Color"] = SaveSimulationData.Current.creatures[i].dnaJSON.genes[7];
-                    creatures.Last().GetComponent<Creature>().dna.Genes["Green_Color"] = SaveSimulationData.Current.creatures[i].dnaJSON.genes[8];
-                    creatures.Last().GetComponent<Creature>().dna.Genes["Blue_Color"] = SaveSimulationData.Current.creatures[i].dnaJSON.genes[9];
+                    creatures.Last().GetComponent<CreatureJobMove>().brain = new Brain(NEATUtils.SetGenome(SaveSimulationData.Current.creatures.Last().NNGenomeJson));
+                    creatures.Last().GetComponent<CreatureJobMove>().dna = new DNA();
+                    creatures.Last().GetComponent<CreatureJobMove>().dna.Genes["Speed"] = SaveSimulationData.Current.creatures[i].dnaJSON.genes[0];
+                    creatures.Last().GetComponent<CreatureJobMove>().dna.Genes["Size"] = SaveSimulationData.Current.creatures[i].dnaJSON.genes[1];
+                    creatures.Last().GetComponent<CreatureJobMove>().dna.Genes["Max_Size"] = SaveSimulationData.Current.creatures[i].dnaJSON.genes[2];
+                    creatures.Last().GetComponent<CreatureJobMove>().dna.Genes["Strength"] = SaveSimulationData.Current.creatures[i].dnaJSON.genes[3];
+                    creatures.Last().GetComponent<CreatureJobMove>().dna.Genes["Mutation_Size"] = SaveSimulationData.Current.creatures[i].dnaJSON.genes[4];
+                    creatures.Last().GetComponent<CreatureJobMove>().dna.Genes["Mutation_Chance"] = SaveSimulationData.Current.creatures[i].dnaJSON.genes[5];
+                    creatures.Last().GetComponent<CreatureJobMove>().dna.Genes["View_Distance"] = SaveSimulationData.Current.creatures[i].dnaJSON.genes[6];
+                    creatures.Last().GetComponent<CreatureJobMove>().dna.Genes["Red_Color"] = SaveSimulationData.Current.creatures[i].dnaJSON.genes[7];
+                    creatures.Last().GetComponent<CreatureJobMove>().dna.Genes["Green_Color"] = SaveSimulationData.Current.creatures[i].dnaJSON.genes[8];
+                    creatures.Last().GetComponent<CreatureJobMove>().dna.Genes["Blue_Color"] = SaveSimulationData.Current.creatures[i].dnaJSON.genes[9];
                     creatures.Last().transform.position = SaveSimulationData.Current.creatures[i].position;
-                    creatures.Last().GetComponent<Creature>().foodcollected = SaveSimulationData.Current.creatures[i].foodcollected;
-                    creatures.Last().GetComponent<Creature>().energy = SaveSimulationData.Current.creatures[i].energy;
-                    creatures.Last().GetComponent<Creature>().size = SaveSimulationData.Current.creatures[i].size;
-                    creatures.Last().GetComponent<Creature>().hunger = SaveSimulationData.Current.creatures[i].hunger;
-                    creatures.Last().GetComponent<Creature>().health = SaveSimulationData.Current.creatures[i].health;
-                    creatures.Last().GetComponent<Creature>().maturity = SaveSimulationData.Current.creatures[i].maturity;
-                    creatures.Last().GetComponent<Creature>().Time_Alive = SaveSimulationData.Current.creatures[i].Time_Alive;
+                    creatures.Last().GetComponent<CreatureJobMove>().foodcollected = SaveSimulationData.Current.creatures[i].foodcollected;
+                    creatures.Last().GetComponent<CreatureJobMove>().energy = SaveSimulationData.Current.creatures[i].energy;
+                    creatures.Last().GetComponent<CreatureJobMove>().size = SaveSimulationData.Current.creatures[i].size;
+                    creatures.Last().GetComponent<CreatureJobMove>().hunger = SaveSimulationData.Current.creatures[i].hunger;
+                    creatures.Last().GetComponent<CreatureJobMove>().health = SaveSimulationData.Current.creatures[i].health;
+                    creatures.Last().GetComponent<CreatureJobMove>().maturity = SaveSimulationData.Current.creatures[i].maturity;
+                    creatures.Last().GetComponent<CreatureJobMove>().Time_Alive = SaveSimulationData.Current.creatures[i].Time_Alive;
                     creatures.Last().name = SaveSimulationData.Current.creatures[i].name;
 
-                    creatures.Last().GetComponent<Creature>().InputNodes = inputNodes;
-                    creatures.Last().GetComponent<Creature>().Init();
+                    creatures.Last().GetComponent<CreatureJobMove>().InputNodes = inputNodes;
+                    creatures.Last().GetComponent<CreatureJobMove>().Init();
                     brains[i] = new Brain(NEATUtils.SetGenome(SaveSimulationData.Current.creatures[i].NNGenomeJson));
                     brains[i].species_num = 0;
                     brains[i].createNetwork();
                     dnas[i] = new DNA();
-                    dnas[i].Genes = creatures.Last().GetComponent<Creature>().dna.Genes;
+                    dnas[i].Genes = creatures.Last().GetComponent<CreatureJobMove>().dna.Genes;
                 }
                 
             }
@@ -309,9 +309,9 @@ public class SimulationManager : MonoBehaviour
                             {
                                 if (creatures[c] != null)
                                 {
-                                    if (creatures[c].GetComponent<Creature>().brain.id == brains[x].id)
+                                    if (creatures[c].GetComponent<CreatureJobMove>().brain.id == brains[x].id)
                                     {
-                                        speciesInfo[i].dna.Genes = creatures[c].GetComponent<Creature>().dna.Genes;
+                                        speciesInfo[i].dna.Genes = creatures[c].GetComponent<CreatureJobMove>().dna.Genes;
                                         break;
                                     }
                                 }
@@ -341,9 +341,9 @@ public class SimulationManager : MonoBehaviour
                             {
                                 if (creatures[c] != null)
                                 {
-                                    if (creatures[c].GetComponent<Creature>().brain.id == brains[x].id)
+                                    if (creatures[c].GetComponent<CreatureJobMove>().brain.id == brains[x].id)
                                     {
-                                        speciesInfo[i].dna.Genes = creatures[c].GetComponent<Creature>().dna.Genes;
+                                        speciesInfo[i].dna.Genes = creatures[c].GetComponent<CreatureJobMove>().dna.Genes;
                                         break;
                                     }
                                 }
@@ -551,17 +551,17 @@ public class SimulationManager : MonoBehaviour
         {
             temp.SetActive(true);
             GameObject creatureoffspring = temp;
-            creatureoffspring.GetComponent<Creature>().brain = newbrain;
-            creatureoffspring.GetComponent<Creature>().InputNodes = inputNodes;
-            creatureoffspring.GetComponent<Creature>().brain.createNetwork();
-            creatureoffspring.GetComponent<Creature>().dna = dna;
-            creatureoffspring.GetComponent<Creature>().name = "Creature of generation: " + generation;
-            creatureoffspring.GetComponent<Creature>().brain.MutateNN(1);
-            if (UnityEngine.Random.Range(0, creatureoffspring.GetComponent<Creature>().dna.Genes["Mutation_Chance"])  == 1)
+            creatureoffspring.GetComponent<CreatureJobMove>().brain = newbrain;
+            creatureoffspring.GetComponent<CreatureJobMove>().InputNodes = inputNodes;
+            creatureoffspring.GetComponent<CreatureJobMove>().brain.createNetwork();
+            creatureoffspring.GetComponent<CreatureJobMove>().dna = dna;
+            creatureoffspring.GetComponent<CreatureJobMove>().name = "Creature of generation: " + generation;
+            creatureoffspring.GetComponent<CreatureJobMove>().brain.MutateNN(1);
+            if (UnityEngine.Random.Range(0, creatureoffspring.GetComponent<CreatureJobMove>().dna.Genes["Mutation_Chance"])  == 1)
             {
-                creatureoffspring.GetComponent<Creature>().dna.RandomizeGeneSet(creatureoffspring.GetComponent<Creature>().dna.Genes["Mutation_Size"]);
+                creatureoffspring.GetComponent<CreatureJobMove>().dna.RandomizeGeneSet(creatureoffspring.GetComponent<CreatureJobMove>().dna.Genes["Mutation_Size"]);
             }
-            creatureoffspring.GetComponent<Creature>().Init();
+            creatureoffspring.GetComponent<CreatureJobMove>().Init();
             creatures.Add(creatureoffspring);
             CreaturePlacement(creatureoffspring);
         }
@@ -613,11 +613,11 @@ public class SimulationManager : MonoBehaviour
                         temp.SetActive(true);
                         creatures.Add(temp);
                         creatures.Last().transform.position = hit.point;
-                        creatures.Last().GetComponent<Creature>().brain = brains[i];
-                        creatures.Last().GetComponent<Creature>().dna = dnas[i];
-                        creatures.Last().GetComponent<Creature>().InputNodes = inputNodes;
+                        creatures.Last().GetComponent<CreatureJobMove>().brain = brains[i];
+                        creatures.Last().GetComponent<CreatureJobMove>().dna = dnas[i];
+                        creatures.Last().GetComponent<CreatureJobMove>().InputNodes = inputNodes;
                         creatures.Last().name = "Creature: " + (popCount + 1);
-                        creatures.Last().GetComponent<Creature>().Init();
+                        creatures.Last().GetComponent<CreatureJobMove>().Init();
                         popCount += 1;
                         i++;
                     }
